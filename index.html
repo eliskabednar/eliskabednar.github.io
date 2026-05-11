@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eliška Bednář Hradská | ICT Educator Portfolio</title>
-    <!-- Tailwind CSS pro moderní stylování -->
+    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome pro ikony -->
+    <!-- FontAwesome icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script>
@@ -23,7 +23,7 @@
                         brand: {
                             50: '#f0fdfa',
                             100: '#ccfbf1',
-                            500: '#14b8a6', // Teal hlavní
+                            500: '#14b8a6', // Main Teal
                             600: '#0d9488',
                             900: '#134e4a',
                         }
@@ -70,7 +70,7 @@
 </nav>
 
 <!-- Hero Section -->
-<section class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+<section id="about" class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
     <!-- Background decorations -->
     <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl opacity-30 pointer-events-none">
         <div class="absolute top-20 left-10 w-72 h-72 bg-brand-400 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
@@ -90,7 +90,7 @@
                     Making technology <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-blue-600">approachable</span> & exciting.
                 </h1>
                 <p class="text-lg lg:text-xl text-slate-600 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-                    I am a dedicated ICT teacher specializing in elementary and secondary education. I design interactive, cross-curricular EdTech resources that foster digital literacy and creative problem-solving.
+                    I am a dedicated ICT teacher specializing in elementary and secondary education. I design interactive, cross-curricular EdTech resources and comprehensive pedagogical materials that foster digital literacy and creative problem-solving.
                 </p>
                 <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
                     <a href="#portfolio" class="w-full sm:w-auto px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-full font-bold transition-all transform hover:-translate-y-1 shadow-lg shadow-brand-500/30 flex items-center justify-center gap-2">
@@ -106,7 +106,7 @@
             <div class="w-64 h-64 lg:w-96 lg:h-96 relative shrink-0">
                 <div class="absolute inset-0 bg-gradient-to-tr from-brand-500 to-blue-500 rounded-[2.5rem] rotate-6 opacity-20 scale-105"></div>
                 <img src="image_51bbfc.jpg" alt="Eliška Bednář Hradská" class="relative w-full h-full object-cover rounded-[2.5rem] shadow-2xl border-4 border-white z-10" onerror="this.src='https://ui-avatars.com/api/?name=Eliska+Hradska&size=512&background=14b8a6&color=fff'">
-                <!-- Plovoucí badge -->
+                <!-- Floating badge -->
                 <div class="absolute -bottom-6 -left-6 bg-white p-4 rounded-2xl shadow-xl z-20 border border-slate-100 flex items-center gap-3 animate-bounce" style="animation-duration: 3s;">
                     <div class="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 text-xl">
                         <i class="fa-solid fa-graduation-cap"></i>
@@ -126,16 +126,52 @@
 <section id="portfolio" class="py-20 bg-white border-t border-slate-100">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto mb-16">
-            <h2 class="font-heading text-4xl font-extrabold text-slate-900 mb-4">Interactive Teaching Resources</h2>
+            <h2 class="font-heading text-4xl font-extrabold text-slate-900 mb-4">Digital Portfolio & Methodologies</h2>
             <p class="text-lg text-slate-600">
-                A collection of custom-coded, interactive pedagogical tools I developed to make complex technical and logical concepts engaging for students.
-                <br><span class="text-sm italic text-slate-400">*Note: Applications are currently localized in Czech for my current students.</span>
+                A collection of custom-coded interactive tools, comprehensive methodological cards, and my upcoming Master's Thesis materials.
+                <br><span class="text-sm italic text-slate-400">*Note: Applications and documents are localized in Czech for my current students.</span>
             </p>
         </div>
 
+        <!-- 3x3 Grid for Projects -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 
-            <!-- Project 1: Maps -->
+            <!-- 1. LEGO SPIKE THESIS -->
+            <div class="project-card bg-slate-50 rounded-3xl p-1 border border-slate-200 hover:border-amber-300 transition-all shadow-sm hover:shadow-xl group relative overflow-hidden">
+                <!-- WIP Badge -->
+                <div class="absolute top-4 -right-8 bg-amber-400 text-amber-900 text-[10px] font-bold px-8 py-1 rotate-45 z-10 shadow-sm">
+                    THESIS (WIP)
+                </div>
+                <div class="bg-white rounded-[1.35rem] h-full p-6 flex flex-col relative z-0">
+                    <div class="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-2xl mb-6 project-icon">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <h3 class="font-heading text-xl font-bold text-slate-900 mb-2">LEGO SPIKE Curriculum</h3>
+                    <p class="text-slate-600 text-sm mb-4 flex-grow">
+                        My Master's Thesis project. A comprehensive robotics curriculum featuring lesson plans, interactive maps, and student worksheets.
+                    </p>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="text-xs font-bold px-2 py-1 bg-slate-100 text-slate-600 rounded-md">Robotics</span>
+                        <span class="text-xs font-bold px-2 py-1 bg-slate-100 text-slate-600 rounded-md">M.Ed. Thesis</span>
+                    </div>
+
+                    <div class="flex flex-col gap-2 mt-auto">
+                        <!-- Disabled Main Button for the final thesis -->
+                        <button disabled class="w-full text-center py-2 bg-slate-100 text-slate-400 rounded-xl font-semibold text-xs border border-slate-200 cursor-not-allowed">
+                            <i class="fa-solid fa-lock mr-1"></i> Full Thesis (Unlocks June 2026)
+                        </button>
+                        <!-- Links to draft materials -->
+                        <p class="text-[10px] font-bold text-slate-400 uppercase mt-2">Available Thesis Extracts:</p>
+                        <div class="grid grid-cols-3 gap-2">
+                            <a href="Mapy_tisk.pdf" target="_blank" class="text-center py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg font-semibold text-xs transition-colors" title="Printable Maps">Maps</a>
+                            <a href="MK.pdf" target="_blank" class="text-center py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg font-semibold text-xs transition-colors" title="Methodological Cards">Cards</a>
+                            <a href="PL_tisk.pdf" target="_blank" class="text-center py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg font-semibold text-xs transition-colors" title="Worksheets">Wrkshts</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Maps (D3.js) -->
             <div class="project-card bg-slate-50 rounded-3xl p-1 border border-slate-200 hover:border-brand-300 transition-all shadow-sm hover:shadow-xl group">
                 <div class="bg-white rounded-[1.35rem] h-full p-6 flex flex-col">
                     <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl mb-6 project-icon">
@@ -143,7 +179,7 @@
                     </div>
                     <h3 class="font-heading text-xl font-bold text-slate-900 mb-2">Interactive D3.js Geography</h3>
                     <p class="text-slate-600 text-sm mb-6 flex-grow">
-                        Cross-curricular web application combining ICT skills with Geography. Students drag and drop countries/cities using responsive D3.js vector maps.
+                        Cross-curricular web application combining ICT skills with Geography. Students drag and drop countries using responsive D3.js vector maps.
                     </p>
                     <div class="flex flex-wrap gap-2 mb-6">
                         <span class="text-xs font-bold px-2 py-1 bg-slate-100 text-slate-600 rounded-md">HTML/JS</span>
@@ -160,7 +196,27 @@
                 </div>
             </div>
 
-            <!-- Project 2: File System -->
+            <!-- 3. Tinkercad 3D Modeling -->
+            <div class="project-card bg-slate-50 rounded-3xl p-1 border border-slate-200 hover:border-brand-300 transition-all shadow-sm hover:shadow-xl group">
+                <div class="bg-white rounded-[1.35rem] h-full p-6 flex flex-col">
+                    <div class="w-14 h-14 bg-pink-50 text-pink-600 rounded-2xl flex items-center justify-center text-2xl mb-6 project-icon">
+                        <i class="fa-solid fa-cube"></i>
+                    </div>
+                    <h3 class="font-heading text-xl font-bold text-slate-900 mb-2">3D Design & Tinkercad</h3>
+                    <p class="text-slate-600 text-sm mb-6 flex-grow">
+                        Step-by-step methodological guide designed to introduce 6th-8th graders to the fundamentals of 3D modeling, spatial reasoning, and digital creation.
+                    </p>
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        <span class="text-xs font-bold px-2 py-1 bg-slate-100 text-slate-600 rounded-md">3D Modeling</span>
+                        <span class="text-xs font-bold px-2 py-1 bg-slate-100 text-slate-600 rounded-md">Pedagogy</span>
+                    </div>
+                    <a href="Metodická karta_modelovani_tinkercad.pdf" target="_blank" class="mt-auto w-full text-center py-3 bg-slate-900 hover:bg-brand-600 text-white rounded-xl font-semibold text-sm transition-colors">
+                        View Methodology (PDF)
+                    </a>
+                </div>
+            </div>
+
+            <!-- 4. File System -->
             <div class="project-card bg-slate-50 rounded-3xl p-1 border border-slate-200 hover:border-brand-300 transition-all shadow-sm hover:shadow-xl group">
                 <div class="bg-white rounded-[1.35rem] h-full p-6 flex flex-col">
                     <div class="w-14 h-14 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center text-2xl mb-6 project-icon">
@@ -171,17 +227,20 @@
                         Interactive lesson teaching students directory trees, file extensions, and drag-and-drop organization. Includes automatic PDF report generation.
                     </p>
                     <div class="flex flex-wrap gap-2 mb-6">
-                        <span class="text-xs font-bold px-2 py-1 bg-slate-100 text-slate-600 rounded-md">Drag & Drop</span>
+                        <span class="text-xs font-bold px-2 py-1 bg-slate-100 text-slate-600 rounded-md">Interactive Web</span>
                         <span class="text-xs font-bold px-2 py-1 bg-slate-100 text-slate-600 rounded-md">PDF Export</span>
                     </div>
                     <div class="flex flex-col gap-2 mt-auto">
-                        <a href="index.html" target="_blank" class="w-full text-center py-2.5 bg-slate-900 hover:bg-brand-600 text-white rounded-xl font-semibold text-sm transition-colors">Module A</a>
-                        <a href="index_2.html" target="_blank" class="w-full text-center py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-sm transition-colors">Module B</a>
+                        <!-- Zde předpokládám, že první souborový manažer má jméno soubor_manager.html atd.,
+                             nebo je nahraješ podle svých názvů. Já nechávám index.html a index_2.html jak jsi posílala dříve,
+                             ale POZOR, jelikož tato stránka je index.html, musíš tamty předchozí přejmenovat! -->
+                        <a href="soubory_zaklad.html" target="_blank" class="w-full text-center py-2.5 bg-slate-900 hover:bg-brand-600 text-white rounded-xl font-semibold text-sm transition-colors">Module A (Basics)</a>
+                        <a href="index_2.html" target="_blank" class="w-full text-center py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-sm transition-colors">Module B (Advanced)</a>
                     </div>
                 </div>
             </div>
 
-            <!-- Project 3: macOS Game -->
+            <!-- 5. macOS Game -->
             <div class="project-card bg-slate-50 rounded-3xl p-1 border border-slate-200 hover:border-brand-300 transition-all shadow-sm hover:shadow-xl group">
                 <div class="bg-white rounded-[1.35rem] h-full p-6 flex flex-col">
                     <div class="w-14 h-14 bg-stone-100 text-stone-800 rounded-2xl flex items-center justify-center text-2xl mb-6 project-icon">
@@ -201,7 +260,29 @@
                 </div>
             </div>
 
-            <!-- Project 4: Numbers/Spreadsheets -->
+            <!-- 6. Cyber Safety & Management -->
+            <div class="project-card bg-slate-50 rounded-3xl p-1 border border-slate-200 hover:border-brand-300 transition-all shadow-sm hover:shadow-xl group">
+                <div class="bg-white rounded-[1.35rem] h-full p-6 flex flex-col">
+                    <div class="w-14 h-14 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center text-2xl mb-6 project-icon">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h3 class="font-heading text-xl font-bold text-slate-900 mb-2">Cyber Safety & Mgmt</h3>
+                    <p class="text-slate-600 text-sm mb-6 flex-grow">
+                        Essential resources for a safe environment: A Cyberbullying Crisis Plan for the teacher's lounge and visual classroom duties mapping.
+                    </p>
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        <span class="text-xs font-bold px-2 py-1 bg-slate-100 text-slate-600 rounded-md">Digital Safety</span>
+                        <span class="text-xs font-bold px-2 py-1 bg-slate-100 text-slate-600 rounded-md">Classroom Mgmt</span>
+                    </div>
+                    <div class="flex flex-col gap-2 mt-auto">
+                        <!-- ZDE JE ODKAZ NA TVŮJ KRIZOVÝ PLÁN. PŘEJMENUJ HO V PC NA krizovy_plan.html -->
+                        <a href="krizovy_plan.html" target="_blank" class="w-full text-center py-2.5 bg-slate-900 hover:bg-brand-600 text-white rounded-xl font-semibold text-sm transition-colors">Cyber Crisis Plan (HTML)</a>
+                        <a href="Pravidla služby ve třídě.jpg" target="_blank" class="w-full text-center py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-sm transition-colors">Classroom Duties (IMG)</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. Numbers/Spreadsheets -->
             <div class="project-card bg-slate-50 rounded-3xl p-1 border border-slate-200 hover:border-brand-300 transition-all shadow-sm hover:shadow-xl group">
                 <div class="bg-white rounded-[1.35rem] h-full p-6 flex flex-col">
                     <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl mb-6 project-icon">
@@ -221,7 +302,7 @@
                 </div>
             </div>
 
-            <!-- Project 5: Networks Test -->
+            <!-- 8. Networks Test -->
             <div class="project-card bg-slate-50 rounded-3xl p-1 border border-slate-200 hover:border-brand-300 transition-all shadow-sm hover:shadow-xl group">
                 <div class="bg-white rounded-[1.35rem] h-full p-6 flex flex-col">
                     <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl mb-6 project-icon">
@@ -241,7 +322,7 @@
                 </div>
             </div>
 
-            <!-- Project 6: OS Worksheet -->
+            <!-- 9. OS Worksheet -->
             <div class="project-card bg-slate-50 rounded-3xl p-1 border border-slate-200 hover:border-brand-300 transition-all shadow-sm hover:shadow-xl group">
                 <div class="bg-white rounded-[1.35rem] h-full p-6 flex flex-col">
                     <div class="w-14 h-14 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center text-2xl mb-6 project-icon">
@@ -270,19 +351,13 @@
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
         <div class="flex items-center gap-2">
             <div class="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center text-white font-heading font-bold">E</div>
-            <span class="font-heading font-bold text-white tracking-tight">Eliška Bednář Hradská</span>
+            <span class="font-heading font-bold text-white tracking-tight">Eliška B. Hradská</span>
         </div>
         <p class="text-sm">© 2026 Digital Portfolio. Designed for modern education.</p>
         <div class="flex gap-4">
             <a href="mailto:elca@hradsky.net" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-brand-500 hover:text-white transition-colors">
                 <i class="fa-solid fa-envelope"></i>
             </a>
-            <!-- Můžeš si odkomentovat a přidat odkaz na LinkedIn -->
-            <!--
-            <a href="#" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-brand-500 hover:text-white transition-colors">
-                <i class="fa-brands fa-linkedin-in"></i>
-            </a>
-            -->
         </div>
     </div>
 </footer>
