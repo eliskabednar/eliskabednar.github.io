@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Komplexní pracovní list: OS, macOS & WWW</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f5f7;
+            color: #1d1d1f;
+        }
+        .mac-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+        .btn-apple {
+            background-color: #007aff;
+            color: white;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-apple:hover {
+            background-color: #0063ce;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+        }
+        .step-number {
+            background: #007aff;
+            color: white;
+            width: 28px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        .section-divider {
+            border-top: 2px solid #f0f0f2;
+            margin: 2.5rem 0;
+            padding-top: 2.5rem;
+        }
+
+        /* STYLY PRO TISK */
+        #printArea {
+            display: none;
+        }
+
+        @media print {
+            body { background-color: white !important; padding: 0 !important; }
+            .no-print { display: none !important; }
+            #printArea { display: block !important; width: 100%; }
+            .mac-card { box-shadow: none !important; border: none !important; backdrop-filter: none !important; background: white !important; }
+            @page { margin: 1.5cm; }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-10">
+
+<div class="max-w-4xl mx-auto no-print">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row items-center justify-between mb-10 gap-4">
+        <div class="text-left">
+            <h1 class="text-4xl font-bold tracking-tight mb-2">OS a WWW - Opakování</h1>
+            <p class="text-gray-500 font-medium text-lg">OS, macOS, WWW a praktické dovednosti</p>
+        </div>
+        <div class="flex items-center gap-4">
+            <i class="fa-solid fa-network-wired text-4xl text-blue-500"></i>
+            <i class="fa-brands fa-apple text-6xl text-gray-800"></i>
+        </div>
+    </div>
+
+    <div class="mac-card p-6 md:p-10 mb-8 border border-gray-200">
+        <!-- Student Info -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 bg-gray-50 p-6 rounded-xl border border-gray-100">
+            <div>
+                <label class="block text-xs font-bold uppercase text-gray-400 mb-2">Jméno a příjmení</label>
+                <input type="text" id="studentName" class="w-full p-3 rounded-lg border border-gray-300 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Jan Novák">
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase text-gray-400 mb-2">Třída</label>
+                <input type="text" id="studentClass" class="w-full p-3 rounded-lg border border-gray-300 outline-none focus:ring-2 focus:ring-blue-500" placeholder="8.A">
+            </div>
+        </div>
+
+        <!-- Sekce 1: Teorie OS -->
+        <section class="mb-10">
+            <h2 class="text-2xl font-bold mb-8 flex items-center">
+                <span class="step-number">1</span> Teorie: Operační systémy
+            </h2>
+
+            <div class="space-y-8">
+                <div>
+                    <p class="font-semibold mb-4">1. Který z těchto systémů je "Open Source"?</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <label class="flex items-center p-4 border rounded-xl cursor-pointer hover:bg-blue-50 transition-all">
+                            <input type="radio" name="q1" value="Windows" class="w-4 h-4 text-blue-600">
+                            <span class="ml-3">Windows</span>
+                        </label>
+                        <label class="flex items-center p-4 border rounded-xl cursor-pointer hover:bg-blue-50 transition-all">
+                            <input type="radio" name="q1" value="macOS" class="w-4 h-4 text-blue-600">
+                            <span class="ml-3">macOS</span>
+                        </label>
+                        <label class="flex items-center p-4 border rounded-xl cursor-pointer hover:bg-blue-50 transition-all">
+                            <input type="radio" name="q1" value="Linux" class="w-4 h-4 text-blue-600">
+                            <span class="ml-3">Linux</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <p class="font-semibold mb-4">2. Jak se jmenuje základní aplikace pro správu souborů v macOS?</p>
+                    <input type="text" id="q_finder" class="w-full p-4 rounded-xl border border-gray-200 outline-none focus:border-blue-500" placeholder="Název aplikace...">
+                </div>
+
+                <div>
+                    <p class="font-semibold mb-4">3. Přiřaď správně systém k zařízení:</p>
+                    <div class="space-y-3 bg-white p-4 rounded-xl border">
+                        <div class="flex items-center justify-between p-2 border-b last:border-0">
+                            <span>Apple iPhone</span>
+                            <select id="q_assign_ios" class="p-2 rounded bg-gray-50 border outline-none">
+                                <option value="">-- vybrat --</option>
+                                <option value="iOS">iOS</option>
+                                <option value="Android">Android</option>
+                                <option value="Windows">Windows</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center justify-between p-2 border-b last:border-0">
+                            <span>Samsung Galaxy</span>
+                            <select id="q_assign_android" class="p-2 rounded bg-gray-50 border outline-none">
+                                <option value="">-- vybrat --</option>
+                                <option value="iOS">iOS</option>
+                                <option value="Android">Android</option>
+                                <option value="Linux">Linux</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sekce 2: Teorie WWW -->
+        <section class="section-divider">
+            <h2 class="text-2xl font-bold mb-8 flex items-center">
+                <span class="step-number">2</span> Teorie: WWW
+            </h2>
+            <div class="space-y-8">
+                <div>
+                    <p class="font-semibold mb-4">4. Co přesně znamená zkratka WWW?</p>
+                    <input type="text" id="q_www_name" class="w-full p-4 rounded-xl border border-gray-200 outline-none focus:border-blue-500" placeholder="Anglický plný název...">
+                </div>
+                <div>
+                    <p class="font-semibold mb-4">5. Kdo je hlavním vynálezcem webu (WWW)?</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                            <input type="radio" name="q_inventor" value="Steve Jobs" class="mr-3"> Steve Jobs
+                        </label>
+                        <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                            <input type="radio" name="q_inventor" value="Tim Berners-Lee" class="mr-3"> Tim Berners-Lee
+                        </label>
+                        <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                            <input type="radio" name="q_inventor" value="Bill Gates" class="mr-3"> Bill Gates
+                        </label>
+                        <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                            <input type="radio" name="q_inventor" value="Ada Lovelace" class="mr-3"> Ada Lovelace
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sekce 3: Praktické úkoly -->
+        <section class="section-divider">
+            <h2 class="text-2xl font-bold mb-4 flex items-center text-blue-600">
+                <span class="step-number bg-blue-600">3</span> Praktická práce (Důkazy)
+            </h2>
+
+            <div class="space-y-10">
+                <!-- Úkol A: Vzhled -->
+                <div class="p-6 border-2 border-gray-100 rounded-2xl bg-white shadow-sm">
+                    <div class="flex items-center mb-4">
+                        <input type="checkbox" id="p1" class="w-6 h-6 text-blue-600">
+                        <label class="ml-3 font-bold text-lg">Tapeta a Tmavý režim</label>
+                    </div>
+                    <textarea id="p1_desc" class="w-full p-3 bg-gray-50 border rounded-lg text-sm h-20 mb-4 outline-none focus:border-blue-500" placeholder="Popiš cestu v Nastavení..."></textarea>
+                </div>
+
+                <!-- Úkol B: Spotlight -->
+                <div class="p-6 border-2 border-blue-100 rounded-2xl bg-white shadow-sm">
+                    <div class="flex items-center mb-4">
+                        <input type="checkbox" id="p3" class="w-6 h-6 text-blue-600">
+                        <label class="ml-3 font-bold text-lg">Spotlight: Výpočet (568 * 14)</label>
+                    </div>
+                    <input type="text" id="p3_val" class="w-full p-3 bg-gray-50 border rounded-lg mb-4 outline-none focus:border-blue-500" placeholder="Zapiš výsledek...">
+                    <div class="bg-blue-600 p-4 rounded-xl text-white">
+                        <p class="text-sm font-bold mb-2">Screenshot 2: Výřez Spotlightu s výsledkem (Cmd+Shift+3)</p>
+                        <input type="file" id="img_spotlight" class="text-sm file:bg-white file:text-blue-600 file:border-0 file:px-3 file:py-1 file:rounded-md cursor-pointer" accept="image/*" onchange="previewImg(this, 'prev_spot')">
+                        <img id="prev_spot" class="mt-4 max-h-32 hidden rounded border border-white/50">
+                    </div>
+                </div>
+
+                <!-- Úkol C: Finder a Tagy -->
+                <div class="p-6 border-2 border-gray-100 rounded-2xl bg-white shadow-sm">
+                    <div class="flex items-center mb-4">
+                        <input type="checkbox" id="p_tags" class="w-6 h-6 text-blue-600">
+                        <label class="ml-3 font-bold text-lg">Práce s Finderem a Tagy</label>
+                    </div>
+                    <p class="text-sm text-gray-500 mb-4">Úkol: Vytvoř soubor a dej mu ČERVENÝ tag.</p>
+                    <textarea id="p_tags_desc" class="w-full p-3 bg-gray-50 border rounded-lg text-sm h-20 outline-none focus:border-blue-500" placeholder="Popiš, jak jsi souboru ten tag přiřadil/a (postup klikání)..."></textarea>
+                </div>
+
+                <!-- Úkol D: Sady -->
+                <div class="p-6 border-2 border-gray-100 rounded-2xl bg-white shadow-sm">
+                    <div class="flex items-center mb-4">
+                        <input type="checkbox" id="p2" class="w-6 h-6 text-blue-600">
+                        <label class="ml-3 font-bold text-lg">Sady na ploše (Stacks)</label>
+                    </div>
+                    <input type="text" id="p2_desc" class="w-full p-3 bg-gray-50 border rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Jakým kliknutím jsi sady aktivoval/a?">
+                </div>
+            </div>
+        </section>
+
+        <!-- Submit -->
+        <div class="text-center pt-10 border-t-2 border-gray-100">
+            <button onclick="prepareAndPrint()" class="btn-apple px-16 py-6 rounded-full font-bold text-2xl shadow-xl flex items-center mx-auto transition-transform active:scale-95">
+                <i class="fa-solid fa-print mr-3"></i> Odevzdat / Uložit jako PDF
+            </button>
+            <p class="text-sm text-gray-400 mt-6 uppercase tracking-widest font-bold italic">V tiskovém okně vyberte „Uložit jako PDF“ pro vygenerování souboru.</p>
+        </div>
+    </div>
+</div>
+
+<!-- OBLAST PRO TISK (skrytá během prohlížení) -->
+<div id="printArea">
+    <div style="background-color: #1d1d1f; color: white; padding: 40px; border-radius: 4px; margin-bottom: 40px;">
+        <h1 style="font-size: 32px; margin: 0 0 10px 0; letter-spacing: 1px;">OS a WWW - Opakování</h1>
+        <p id="printInfo" style="font-size: 14px; margin: 0; opacity: 0.9; font-family: monospace;"></p>
+    </div>
+
+    <div style="margin-bottom: 30px;">
+        <h2 style="color: #007aff; font-size: 24px; border-bottom: 2px solid #007aff; padding-bottom: 10px; margin-bottom: 20px;">I. Teorie Operačních systémů</h2>
+        <p id="printQ1" style="margin-bottom: 10px;"></p>
+        <p id="printQ2" style="margin-bottom: 10px;"></p>
+        <p id="printQ3" style="margin-bottom: 10px;"></p>
+    </div>
+
+    <div style="margin-bottom: 30px;">
+        <h2 style="color: #007aff; font-size: 24px; border-bottom: 2px solid #007aff; padding-bottom: 10px; margin-bottom: 20px;">II. Teorie World Wide Web</h2>
+        <p id="printQ4" style="margin-bottom: 10px;"></p>
+        <p id="printQ5" style="margin-bottom: 10px;"></p>
+    </div>
+
+    <div style="margin-bottom: 30px;">
+        <h2 style="color: #007aff; font-size: 24px; border-bottom: 2px solid #007aff; padding-bottom: 10px; margin-bottom: 20px;">III. Praktická část a postupy</h2>
+        <div style="margin-bottom: 15px;">
+            <strong>Plocha a Vzhled:</strong><br>
+            <span id="printP1"></span>
+        </div>
+        <div style="margin-bottom: 15px;">
+            <strong>Spotlight Výpočet:</strong><br>
+            Výsledek: <span id="printP3Val"></span>
+        </div>
+        <div style="margin-bottom: 15px;">
+            <strong>Finder a Tagy:</strong><br>
+            <span id="printPTags"></span>
+        </div>
+        <div style="margin-bottom: 15px;">
+            <strong>Sady na ploše:</strong><br>
+            <span id="printP2"></span>
+        </div>
+    </div>
+
+    <div id="printImgSection" style="margin-top: 30px; display: none;">
+        <h2 style="color: #007aff; font-size: 24px; border-bottom: 2px solid #007aff; padding-bottom: 10px; margin-bottom: 20px;">IV. Obrazové důkazy</h2>
+        <p style="margin-bottom: 15px;">Detail výpočtu ve Spotlightu:</p>
+        <div style="text-align: center;">
+            <img id="printSpotImg" style="max-width: 100%; border: 1px solid #ddd; border-radius: 8px;">
+        </div>
+    </div>
+</div>
+
+<script>
+    function previewImg(input, previewId) {
+        const preview = document.getElementById(previewId);
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function prepareAndPrint() {
+        const name = document.getElementById('studentName').value || 'Anonym';
+        const sClass = document.getElementById('studentClass').value || '8.X';
+        const date = new Date().toLocaleString('cs-CZ');
+
+        // Naplnění tiskové oblasti daty
+        document.getElementById('printInfo').innerText = `Student: ${name} | Třída: ${sClass} | Datum: ${date}`;
+
+        const q1 = document.querySelector('input[name="q1"]:checked')?.value || '-';
+        document.getElementById('printQ1').innerHTML = `<strong>1. Open Source OS:</strong> ${q1}`;
+        document.getElementById('printQ2').innerHTML = `<strong>2. Správce souborů (Finder):</strong> ${document.getElementById('q_finder').value || '-'}`;
+        document.getElementById('printQ3').innerHTML = `<strong>3. Přiřazení:</strong> iPhone &rarr; ${document.getElementById('q_assign_ios').value || '-'}, Samsung &rarr; ${document.getElementById('q_assign_android').value || '-'}`;
+
+        document.getElementById('printQ4').innerHTML = `<strong>4. Význam WWW:</strong> ${document.getElementById('q_www_name').value || '-'}`;
+        const qInv = document.querySelector('input[name="q_inventor"]:checked')?.value || '-';
+        document.getElementById('printQ5').innerHTML = `<strong>5. Vynálezce:</strong> ${qInv}`;
+
+        document.getElementById('printP1').innerText = document.getElementById('p1_desc').value || "-";
+        document.getElementById('printP3Val').innerText = document.getElementById('p3_val').value || "-";
+        document.getElementById('printPTags').innerText = document.getElementById('p_tags_desc').value || "-";
+        document.getElementById('printP2').innerText = document.getElementById('p2_desc').value || "-";
+
+        const spotImg = document.getElementById('prev_spot');
+        if (!spotImg.classList.contains('hidden')) {
+            document.getElementById('printSpotImg').src = spotImg.src;
+            document.getElementById('printImgSection').style.display = 'block';
+        } else {
+            document.getElementById('printImgSection').style.display = 'none';
+        }
+
+        // Vyvolání tisku
+        window.print();
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Numbers: Správa školního bufetu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Chart Container Styles - Strictly Enforced */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Animation classes for highlighting */
+        .highlight-cell {
+            animation: pulse-bg 2s infinite;
+        }
+        @keyframes pulse-bg {
+            0% { background-color: rgba(253, 224, 71, 0.2); }
+            50% { background-color: rgba(253, 224, 71, 0.6); }
+            100% { background-color: rgba(253, 224, 71, 0.2); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    <!-- Chosen Palette: Warm Neutrals with Soft Blue/Green Accents -->
+    <!-- Application Structure Plan:
+         1. Header: Sets context based on the report title.
+         2. Interactive Dashboard Layout:
+            - Left Panel: "Tutorial Steps" navigation. This linearizes the learning process (Steps 1-7 from report).
+            - Right Panel: "Live Spreadsheet". A dynamic representation of the data. Users can edit 'Count' to see real-time updates (Step 1).
+            - Bottom Panel: "Visual Analytics". Charts (Chart.js) that visualize the results of the formulas (Sum, Avg, Share).
+         3. Logic: Selecting a tutorial step highlights relevant table columns, shows the specific formula syntax described in the report, and explains the concept.
+         4. Why this structure? Spreadsheets are visual grids. The best way to learn is to see the grid AND the result (chart) simultaneously while a guide explains the formula.
+    -->
+    <!-- Visualization & Content Choices:
+         - Data Table: The core of the report. Made interactive (editable inputs) to demonstrate recalculation.
+         - Bar Chart (Values): Visually demonstrates the "Multiplication" and "Sum" steps.
+         - Pie Chart (Share): Visually demonstrates the "Division/Percentage" step.
+         - Stat Cards: Visually demonstrates Min/Max/Average functions.
+         - Formula Box: Dynamic text area showing the exact Excel/Sheets formula for the active context.
+         - NO SVG/Mermaid: All icons are Unicode. All charts are Canvas (Chart.js).
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-stone-50 text-stone-800 font-sans leading-relaxed selection:bg-blue-100">
+
+<!-- Header Section -->
+<header class="bg-white border-b border-stone-200 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-stone-900 tracking-tight">🍎 Školní Bufet: Numbers</h1>
+            <p class="text-sm text-stone-500">Základní funkce tabulkového procesoru</p>
+        </div>
+        <div class="hidden md:block text-right">
+            <span class="text-xs uppercase tracking-wider text-stone-400 font-semibold">Stav Cvičení</span>
+            <div id="progress-indicator" class="text-blue-600 font-bold">Krok 1 / 7</div>
+        </div>
+    </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+    <!-- Intro Section -->
+    <section class="bg-white rounded-xl p-6 shadow-sm border border-stone-100">
+        <h2 class="text-xl font-semibold mb-3 text-stone-800">O tomto cvičení</h2>
+        <p class="text-stone-600 mb-4">
+            Vítejte v simulátoru správy skladu. Tento nástroj převádí teorii tabulek do praxe.
+            Naučíte se připravit data, počítat tržby pomocí <strong>násobení</strong>, aplikovat slevy pomocí <strong>odčítání</strong>,
+            analyzovat celky funkcí <strong>SUMA</strong> a zjišťovat podíly pomocí <strong>dělení</strong>.
+        </p>
+        <div class="flex flex-wrap gap-4 text-sm text-stone-500">
+            <span class="flex items-center gap-1">✅ Vstupní data</span>
+            <span class="flex items-center gap-1">➗ Vzorce</span>
+            <span class="flex items-center gap-1">📊 Grafy</span>
+            <span class="flex items-center gap-1">🎨 Formátování</span>
+        </div>
+    </section>
+
+    <!-- Main Interactive Area: Split Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+        <!-- LEFT COLUMN: Navigation & Instructions (3 cols) -->
+        <div class="lg:col-span-4 space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
+                <div class="p-4 bg-stone-100 border-b border-stone-200 font-semibold text-stone-700 flex justify-between items-center">
+                    <span>Lekce (Postup)</span>
+                    <span class="text-xs bg-stone-200 px-2 py-1 rounded">Klikněte pro aktivaci</span>
+                </div>
+                <nav class="flex flex-col" id="lesson-nav">
+                    <!-- Navigation items injected by JS -->
+                </nav>
+            </div>
+
+            <!-- Dynamic Instruction Box -->
+            <div id="instruction-box" class="bg-blue-50 border-l-4 border-blue-500 p-5 rounded-r-xl shadow-sm fade-in">
+                <h3 id="step-title" class="font-bold text-blue-900 text-lg mb-2">Krok 1: Příprava dat</h3>
+                <p id="step-desc" class="text-blue-800 text-sm mb-4">
+                    Začínáme s prázdnou tabulkou. Vaším úkolem je vyplnit základní položky. Vpravo vidíte tabulku, se kterou budeme pracovat. Můžete měnit počty kusů!
+                </p>
+                <div class="bg-white p-3 rounded border border-blue-100 font-mono text-xs text-stone-600">
+                    <span class="block text-stone-400 uppercase text-[10px] mb-1">Aktivní vzorec / Akce:</span>
+                    <code id="step-formula" class="text-blue-600 font-bold">Zadávání dat (Text, Čísla)</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: The Live Table (8 cols) -->
+        <div class="lg:col-span-8">
+            <div class="bg-white rounded-xl shadow-lg border border-stone-200 overflow-hidden flex flex-col h-full">
+                <div class="p-4 border-b border-stone-100 flex justify-between items-center bg-stone-50">
+                    <h3 class="font-bold text-stone-700">📌 Tabulka (Sklad)</h3>
+                    <div class="text-xs text-stone-500 flex gap-2 items-center">
+                        <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                        <span>Editovatelné buňky (Počet)</span>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto p-4">
+                    <table class="w-full text-sm text-left text-stone-600 border-collapse" id="main-table">
+                        <thead class="text-xs text-stone-700 uppercase bg-stone-100" id="table-head">
+                        <!-- Headers injected by JS -->
+                        </thead>
+                        <tbody id="table-body">
+                        <!-- Rows injected by JS -->
+                        </tbody>
+                        <tfoot id="table-foot" class="font-bold bg-stone-50 border-t-2 border-stone-200 hidden">
+                        <!-- Totals injected by JS -->
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Statistics Bar (Hidden initially, shown in Step 5) -->
+                <div id="stats-bar" class="grid grid-cols-3 gap-4 p-4 bg-stone-50 border-t border-stone-200 hidden fade-in">
+                    <div class="text-center p-2 bg-white rounded shadow-sm border border-stone-100">
+                        <div class="text-xs text-stone-400 uppercase">Průměrná Cena</div>
+                        <div class="font-bold text-lg text-blue-600" id="stat-avg">-</div>
+                    </div>
+                    <div class="text-center p-2 bg-white rounded shadow-sm border border-stone-100">
+                        <div class="text-xs text-stone-400 uppercase">Nejdražší (MAX)</div>
+                        <div class="font-bold text-lg text-red-500" id="stat-max">-</div>
+                    </div>
+                    <div class="text-center p-2 bg-white rounded shadow-sm border border-stone-100">
+                        <div class="text-xs text-stone-400 uppercase">Nejlevnější (MIN)</div>
+                        <div class="font-bold text-lg text-green-500" id="stat-min">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section: Visual Analytics -->
+    <section class="mt-12">
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-stone-900">Vizualizace Dat</h2>
+            <p class="text-stone-500 mt-1">
+                Grafické zobrazení výsledků vašich výpočtů. Grafy se automaticky aktualizují, když změníte data v tabulce výše.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Chart 1: Inventory Value -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                <h3 class="font-bold text-stone-700 mb-4 border-l-4 border-indigo-500 pl-3">Hodnota zásob (Kč)</h3>
+                <p class="text-xs text-stone-400 mb-4">Vizualizace Kroku 2 (Násobení) a Kroku 4 (Suma).</p>
+                <div class="chart-container">
+                    <canvas id="valueChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Chart 2: Item Distribution -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                <h3 class="font-bold text-stone-700 mb-4 border-l-4 border-emerald-500 pl-3">Podíl na skladu (%)</h3>
+                <p class="text-xs text-stone-400 mb-4">Vizualizace Kroku 6 (Dělení). Jakou část tvoří jednotlivé položky?</p>
+                <div class="chart-container">
+                    <canvas id="distributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<footer class="bg-stone-900 text-stone-400 py-8 mt-12">
+    <div class="max-w-7xl mx-auto px-4 text-center">
+        <p class="mb-2"><strong>Cvičení na Numbers</strong></p>
+        <p class="text-xs">8.ročník - ICT</p>
+    </div>
+</footer>
+
+<!-- JavaScript Application Logic -->
+<script>
+    // --- DATA MODEL ---
+    const lessons = [
+        {
+            id: 1,
+            title: "Krok 1: Příprava dat",
+            desc: "Máme tabulku s položkami, počtem kusů a cenou za kus. Toto jsou naše vstupní data. Zkuste změnit 'Počet kusů' v tabulce!",
+            formula: "Žádný vzorec (vstupní hodnoty)",
+            activeColumns: ['item', 'count', 'price', 'discount'],
+            showTotals: false
+        },
+        {
+            id: 2,
+            title: "Krok 2: Násobení",
+            desc: "Vypočítáme celkovou hodnotu zboží před slevou. Vynásobíme <b>Počet kusů</b> krát <b>Cena za kus</b>.",
+            formula: "=B2 * C2 (Počet * Cena)",
+            activeColumns: ['item', 'count', 'price', 'total', 'discount'],
+            highlightCols: ['count', 'price', 'total'],
+            showTotals: false
+        },
+        {
+            id: 3,
+            title: "Krok 3: Odčítání",
+            desc: "Vypočítáme konečnou cenu za jeden kus po slevě. Od <b>Ceny za kus</b> odečteme <b>Slevu</b>.",
+            formula: "=C2 - E2 (Cena - Sleva)",
+            activeColumns: ['item', 'count', 'price', 'total', 'discount', 'finalPrice'],
+            highlightCols: ['price', 'discount', 'finalPrice'],
+            showTotals: false
+        },
+        {
+            id: 4,
+            title: "Krok 4: Funkce SUMA",
+            desc: "Spočítáme celkové součty ve sloupcích. Použijeme funkci SUMA pro sečtení všech řádků.",
+            formula: "=SUMA(B2:B6)",
+            activeColumns: ['item', 'count', 'price', 'total', 'discount', 'finalPrice'],
+            showTotals: true,
+            highlightFooter: true
+        },
+        {
+            id: 5,
+            title: "Krok 5: Statistiky",
+            desc: "Použijeme funkce PRŮMĚR, MIN a MAX pro analýzu cen. Podívejte se na panel statistik pod tabulkou.",
+            formula: "=PRŮMĚR(...) | =MAX(...) | =MIN(...)",
+            activeColumns: ['item', 'count', 'price', 'total', 'discount', 'finalPrice'],
+            showTotals: true,
+            showStats: true
+        },
+        {
+            id: 6,
+            title: "Krok 6: Dělení (%)",
+            desc: "Zjistíme podíl jednotlivých položek na celkovém počtu. Vydělíme kusy konkrétního zboží celkovým součtem.",
+            formula: "=B2 / B8 (Část / Celek)",
+            activeColumns: ['item', 'count', 'price', 'total', 'discount', 'finalPrice', 'share'],
+            highlightCols: ['count', 'share'],
+            showTotals: true
+        },
+        {
+            id: 7,
+            title: "Krok 7: Formátování",
+            desc: "Aplikujeme profesionální vzhled: Měna (Kč), Procenta (%), Tučné písmo a Ohraničení.",
+            formula: "Formátování buněk",
+            activeColumns: ['item', 'count', 'price', 'total', 'discount', 'finalPrice', 'share'],
+            showTotals: true,
+            formatted: true
+        }
+    ];
+
+    // Initial Data from Source Report
+    let inventoryData = [
+        { id: 'row1', item: '🍎 Jablko', count: 50, price: 12, discount: 5 },
+        { id: 'row2', item: '🥖 Bageta', count: 20, price: 45, discount: 0 },
+        { id: 'row3', item: '💧 Minerálka', count: 30, price: 18, discount: 2 },
+        { id: 'row4', item: '🍪 Sušenka', count: 40, price: 15, discount: 3 },
+        { id: 'row5', item: '🥛 Jogurt', count: 15, price: 22, discount: 0 }
+    ];
+
+    let currentStepId = 1;
+    let chartValueInstance = null;
+    let chartDistInstance = null;
+
+    // --- DOM ELEMENTS ---
+    const tableHead = document.getElementById('table-head');
+    const tableBody = document.getElementById('table-body');
+    const tableFoot = document.getElementById('table-foot');
+    const navContainer = document.getElementById('lesson-nav');
+    const stepTitle = document.getElementById('step-title');
+    const stepDesc = document.getElementById('step-desc');
+    const stepFormula = document.getElementById('step-formula');
+    const progressIndicator = document.getElementById('progress-indicator');
+    const statsBar = document.getElementById('stats-bar');
+
+    // --- INITIALIZATION ---
+    function init() {
+        renderNav();
+        updateApp();
+        initCharts();
+    }
+
+    // --- CORE LOGIC ---
+
+    function calculateDerivedData(row) {
+        const total = row.count * row.price;
+        const finalPrice = row.price - row.discount;
+        return { ...row, total, finalPrice };
+    }
+
+    function getTotals() {
+        const processed = inventoryData.map(calculateDerivedData);
+        const totalCount = processed.reduce((sum, item) => sum + item.count, 0);
+        const totalValue = processed.reduce((sum, item) => sum + item.total, 0);
+        return { totalCount, totalValue };
+    }
+
+    function getStats() {
+        const prices = inventoryData.map(d => d.price);
+        const sum = prices.reduce((a, b) => a + b, 0);
+        return {
+            avg: (sum / prices.length).toFixed(2),
+            max: Math.max(...prices),
+            min: Math.min(...prices)
+        };
+    }
+
+    function setStep(id) {
+        currentStepId = id;
+        updateApp();
+    }
+
+    function updateData(id, field, value) {
+        const row = inventoryData.find(r => r.id === id);
+        if (row) {
+            row[field] = parseFloat(value) || 0;
+            updateApp(); // Re-render everything
+        }
+    }
+
+    function updateApp() {
+        const step = lessons.find(l => l.id === currentStepId);
+
+        // Update Text Info
+        stepTitle.textContent = step.title;
+        stepDesc.innerHTML = step.desc;
+        stepFormula.textContent = step.formula;
+        progressIndicator.textContent = `Krok ${step.id} / 7`;
+
+        // Update Nav State
+        renderNav();
+
+        // Render Table
+        renderTable(step);
+
+        // Toggle Stats Bar
+        if (step.showStats) {
+            statsBar.classList.remove('hidden');
+            const stats = getStats();
+            document.getElementById('stat-avg').textContent = stats.avg + " Kč";
+            document.getElementById('stat-max').textContent = stats.max + " Kč";
+            document.getElementById('stat-min').textContent = stats.min + " Kč";
+        } else {
+            statsBar.classList.add('hidden');
+        }
+
+        // Update Charts
+        updateChartsData();
+    }
+
+    // --- RENDERING ---
+
+    function renderNav() {
+        navContainer.innerHTML = '';
+        lessons.forEach(lesson => {
+            const btn = document.createElement('button');
+            const isActive = lesson.id === currentStepId;
+            btn.className = `w-full text-left px-4 py-3 border-l-4 transition-colors duration-200 flex justify-between items-center ${
+                isActive
+                    ? 'border-blue-500 bg-blue-50 text-blue-700 font-bold'
+                    : 'border-transparent hover:bg-stone-50 text-stone-600'
+            }`;
+            btn.innerHTML = `
+                    <span>${lesson.id}. ${lesson.title.split(':')[1]}</span>
+                    ${isActive ? '<span>👉</span>' : ''}
+                `;
+            btn.onclick = () => setStep(lesson.id);
+            navContainer.appendChild(btn);
+        });
+    }
+
+    function renderTable(step) {
+        // Define all possible columns
+        const colDefs = [
+            { key: 'item', label: 'Položka', align: 'left', input: false },
+            { key: 'count', label: 'Počet kusů', align: 'center', input: true },
+            { key: 'price', label: 'Cena/ks', align: 'right', input: false, format: 'currency' },
+            { key: 'total', label: 'Celkem (Kč)', align: 'right', input: false, computed: true, format: 'currency' },
+            { key: 'discount', label: 'Sleva', align: 'right', input: false, format: 'currency' },
+            { key: 'finalPrice', label: 'Konečná cena za kus', align: 'right', input: false, computed: true, format: 'currency' },
+            { key: 'share', label: 'Podíl (%)', align: 'right', input: false, computed: true, format: 'percent' }
+        ];
+
+        // Filter columns based on step
+        const visibleCols = colDefs.filter(col => step.activeColumns.includes(col.key));
+        const totals = getTotals();
+
+        // 1. Render Header
+        let headHTML = '<tr>';
+        visibleCols.forEach(col => {
+            const isFormatted = step.formatted;
+            const highlight = step.highlightCols && step.highlightCols.includes(col.key) ? 'bg-yellow-100 text-yellow-800' : '';
+            const style = isFormatted ? 'font-bold bg-stone-200' : '';
+            headHTML += `<th class="px-4 py-3 ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'} ${highlight} ${style}">${col.label}</th>`;
+        });
+        headHTML += '</tr>';
+        tableHead.innerHTML = headHTML;
+
+        // 2. Render Body
+        let bodyHTML = '';
+        inventoryData.forEach(row => {
+            const data = calculateDerivedData(row);
+            // Calculate share dynamically
+            data.share = totals.totalCount > 0 ? (data.count / totals.totalCount) : 0;
+
+            bodyHTML += `<tr class="border-b border-stone-100 hover:bg-stone-50 transition-colors">`;
+
+            visibleCols.forEach(col => {
+                let val = data[col.key];
+                let displayVal = val;
+
+                // Formatting logic (Step 7)
+                if (step.formatted || col.format) {
+                    if (col.format === 'currency' && (step.formatted || currentStepId >= 7)) displayVal = val + " Kč";
+                    if (col.format === 'percent' && (step.formatted || currentStepId >= 6)) displayVal = (val * 100).toFixed(1) + " %";
+                }
+
+                const highlight = step.highlightCols && step.highlightCols.includes(col.key) ? 'bg-yellow-50' : '';
+                const cellClass = `px-4 py-3 ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'} ${highlight}`;
+
+                if (col.input) {
+                    // Editable Input for Count
+                    bodyHTML += `<td class="${cellClass}">
+                            <input type="number" min="0" value="${val}"
+                                class="w-20 text-center border border-stone-300 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none bg-white shadow-inner"
+                                onchange="updateData('${row.id}', '${col.key}', this.value)"
+                            >
+                        </td>`;
+                } else {
+                    // Computed or Static Text
+                    // Highlight animation if computed and in focus
+                    const anim = col.computed && step.highlightCols && step.highlightCols.includes(col.key) ? 'font-bold text-blue-600' : '';
+                    bodyHTML += `<td class="${cellClass} ${anim}">${displayVal}</td>`;
+                }
+            });
+            bodyHTML += `</tr>`;
+        });
+        tableBody.innerHTML = bodyHTML;
+
+        // 3. Render Footer (Totals)
+        if (step.showTotals) {
+            tableFoot.classList.remove('hidden');
+            let footHTML = '<tr>';
+            visibleCols.forEach(col => {
+                let val = '';
+                if (col.key === 'item') val = 'CELKEM';
+                if (col.key === 'count') val = totals.totalCount;
+                if (col.key === 'total') val = totals.totalValue + (step.formatted ? " Kč" : "");
+                if (col.key === 'share') val = step.formatted ? "100 %" : "1";
+
+                const highlight = step.highlightFooter ? 'bg-blue-100 text-blue-900' : '';
+                footHTML += `<td class="px-4 py-3 ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'} ${highlight}">${val}</td>`;
+            });
+            footHTML += '</tr>';
+            tableFoot.innerHTML = footHTML;
+        } else {
+            tableFoot.classList.add('hidden');
+        }
+    }
+
+    // --- CHARTS ---
+
+    function initCharts() {
+        // Chart 1: Value & Count
+        const ctx1 = document.getElementById('valueChart').getContext('2d');
+        chartValueInstance = new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Počet kusů',
+                        data: [],
+                        backgroundColor: 'rgba(99, 102, 241, 0.5)',
+                        borderColor: 'rgb(99, 102, 241)',
+                        borderWidth: 1,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Celkem (Kč)',
+                        data: [],
+                        backgroundColor: 'rgba(245, 158, 11, 0.5)',
+                        borderColor: 'rgb(245, 158, 11)',
+                        borderWidth: 1,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: { display: true, text: 'Počet' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        grid: { drawOnChartArea: false },
+                        title: { display: true, text: 'Hodnota (Kč)' }
+                    }
+                },
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // Chart 2: Distribution
+        const ctx2 = document.getElementById('distributionChart').getContext('2d');
+        chartDistInstance = new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: [],
+                datasets: [{
+                    data: [],
+                    backgroundColor: [
+                        '#ef4444', '#f97316', '#3b82f6', '#8b5cf6', '#10b981'
+                    ],
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                let value = context.raw || 0;
+                                let total = context.chart._metasets[context.datasetIndex].total;
+                                let percentage = ((value / total) * 100).toFixed(1) + '%';
+                                return label + ': ' + percentage;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function updateChartsData() {
+        if(!chartValueInstance || !chartDistInstance) return;
+
+        const derived = inventoryData.map(calculateDerivedData);
+        const labels = derived.map(d => d.item);
+        const counts = derived.map(d => d.count);
+        const totals = derived.map(d => d.total);
+
+        // Update Bar Chart
+        chartValueInstance.data.labels = labels;
+        chartValueInstance.data.datasets[0].data = counts;
+        chartValueInstance.data.datasets[1].data = totals;
+        chartValueInstance.update();
+
+        // Update Doughnut Chart
+        chartDistInstance.data.labels = labels;
+        chartDistInstance.data.datasets[0].data = counts; // Distribution based on count
+        chartDistInstance.update();
+    }
+
+    // Start app
+    window.onload = init;
+
+</script>
+</body>
+</html>

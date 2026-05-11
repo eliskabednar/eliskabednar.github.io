@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poznej Asii - Slepá mapa</title>
+    <!--
+      LOKÁLNÍ (OFFLINE) REŽIM:
+      Chcete-li spustit hru bez internetu:
+      1. Stáhněte si D3.js a Tailwind k sobě do složky.
+      2. Přepište online odkazy níže na vaše lokální soubory
+    -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        /* Custom Animations and Map Styles */
+        @keyframes flashRedMap {
+            0% { fill: #fecaca; }
+            50% { fill: #ef4444; }
+        }
+        @keyframes flashRedCity {
+            0% { fill: #fecaca; r: 6px; }
+            50% { fill: #ef4444; r: 12px; }
+            100% { fill: #ffffff; r: 6px; }
+        }
+
+        #map-wrapper {
+            background-color: #e0f2fe; /* Barva oceánu */
+        }
+
+        .context-region {
+            fill: #f8fafc;
+            stroke: #cbd5e1;
+            stroke-width: 0.5px;
+            stroke-linejoin: round;
+            transition: fill 0.2s ease;
+            cursor: grab;
+        }
+
+        .context-region:hover { fill: #f1f5f9; }
+
+        .map-region {
+            fill: #e2e8f0;
+            stroke: #94a3b8;
+            stroke-width: 0.8px;
+            stroke-linejoin: round;
+            transition: fill 0.2s ease;
+            cursor: pointer;
+        }
+
+        .map-region:hover { fill: #cbd5e1; }
+        .error { animation: flashRedMap 0.6s ease; }
+
+        .correct {
+            fill: #86efac !important;
+            stroke: #22c55e !important;
+            cursor: default !important;
+        }
+
+        .map-city {
+            fill: #ffffff;
+            stroke: #334155;
+            stroke-width: 2px;
+            cursor: pointer;
+            transition: stroke 0.2s ease;
+        }
+
+        .map-city:hover { stroke: #3b82f6; }
+        .map-city.error { animation: flashRedCity 0.6s ease; }
+        .map-city.correct {
+            fill: #eab308 !important; /* Žlutá pro správná města */
+            stroke: #ca8a04 !important;
+            cursor: default !important;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar { width: 6px; }
+        .hide-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .hide-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .hide-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 50;
+            pointer-events: none;
+        }
+
+        /* Pro kurzor při posunování mapy */
+        #asia-map { cursor: grab; }
+        #asia-map:active { cursor: grabbing; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans h-screen flex flex-col overflow-hidden">
+
+<!-- Header & Scoreboard -->
+<header class="bg-white shadow-sm p-4 flex justify-between items-center z-10 shrink-0">
+    <div>
+        <h1 class="text-2xl font-bold text-blue-600">🌍 Slepá mapa: Asie</h1>
+        <p class="text-sm text-slate-500">Najdi na mapě všechny státy Asie a jejich hlavní města.</p>
+    </div>
+    <div class="flex gap-4">
+        <div class="bg-green-100 text-green-800 px-4 py-2 rounded-lg font-bold flex items-center gap-2">
+            ✅ Správně: <span id="score-correct" class="text-xl">0</span>
+        </div>
+        <div class="bg-red-100 text-red-800 px-4 py-2 rounded-lg font-bold flex items-center gap-2">
+            ❌ Špatně: <span id="score-incorrect" class="text-xl">0</span>
+        </div>
+    </div>
+</header>
+
+<!-- Main Content -->
+<main class="flex-grow flex flex-col lg:flex-row overflow-hidden">
+
+    <!-- Map Container (Left) -->
+    <div class="flex-grow relative flex flex-col items-center bg-slate-100 min-h-0" id="map-wrapper">
+
+        <!-- Nápověda Banner (absolutní pozice nad mapou) -->
+        <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-10 pointer-events-none">
+            <div id="instruction-banner" class="bg-slate-800 text-white px-6 py-2 rounded-full shadow-lg text-sm md:text-base font-medium transition-all opacity-95 text-center">
+                Načítám mapová geografická data...
+            </div>
+        </div>
+
+        <!-- SVG prostor s D3.js (Nyní na celou šířku a výšku) -->
+        <svg id="asia-map" class="w-full h-full block"></svg>
+
+    </div>
+
+    <!-- Sidebar / Selection List (Right) -->
+    <div class="w-full lg:w-96 bg-white border-l border-slate-200 flex flex-col shrink-0 z-10 lg:h-full max-h-[40vh] lg:max-h-full shadow-xl">
+        <div class="p-4 border-b border-slate-200 bg-slate-50 shrink-0">
+            <h2 class="font-bold text-lg mb-1 text-slate-700">Seznam k přiřazení</h2>
+            <div class="flex gap-4 text-xs font-medium text-slate-500 mb-3">
+                <span class="flex items-center gap-1">🗺️ Státy</span>
+                <span class="flex items-center gap-1">📍 Města</span>
+            </div>
+            <!-- Vyhledávací pole -->
+            <input type="text" id="search-input" placeholder="Hledat stát nebo město..." class="w-full p-2 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm transition-all">
+        </div>
+
+        <div class="flex-grow overflow-y-auto p-4 hide-scrollbar bg-slate-50" id="items-list">
+            <!-- Položky k výběru se vygenerují zde po načtení mapy -->
+        </div>
+    </div>
+</main>
+
+<!-- Toast Notifications -->
+<div id="toast-container" class="flex flex-col gap-2 transition-all"></div>
+
+<!-- Victory Modal -->
+<div id="victory-modal" class="fixed inset-0 bg-slate-900/50 hidden flex justify-center items-center z-50 backdrop-blur-sm">
+    <div class="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-md transform scale-95 transition-all" id="victory-content">
+        <div class="text-6xl mb-4">🏆</div>
+        <h2 class="text-3xl font-bold text-blue-600 mb-2">Gratulujeme!</h2>
+        <p class="text-slate-600 mb-6">Úspěšně jsi přiřadil všechny státy a města na mapě Asie.</p>
+        <div class="bg-slate-50 rounded-lg p-4 mb-6">
+            <p class="text-sm text-slate-500">Konečné skóre</p>
+            <div class="flex justify-center gap-6 mt-2 font-bold text-xl">
+                <span class="text-green-600">✅ <span id="final-correct">0</span></span>
+                <span class="text-red-600">❌ <span id="final-incorrect">0</span></span>
+            </div>
+        </div>
+        <button onclick="location.reload()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full w-full transition shadow-md hover:shadow-lg">
+            Hrát znovu
+        </button>
+    </div>
+</div>
+
+<script>
+    // Kompletní seznam států Asie s vybranými 8 městy (Základ + Všechny státy)
+    const regionsData = [
+        // Původních 8 států S MĚSTY (souřadnice MĚST)
+        { id: 'SAU', state: 'Saúdská Arábie', city: 'Rijád', lon: 46.6753, lat: 24.7136 },
+        { id: 'IRN', state: 'Írán', city: 'Teherán', lon: 51.3890, lat: 35.6892 },
+        { id: 'IND', state: 'Indie', city: 'Nové Dillí', lon: 77.2090, lat: 28.6139 },
+        { id: 'CHN', state: 'Čína', city: 'Peking', lon: 116.4074, lat: 39.9042 },
+        { id: 'KOR', state: 'Jižní Korea', city: 'Soul', lon: 126.9780, lat: 37.5665 },
+        { id: 'JPN', state: 'Japonsko', city: 'Tokio', lon: 139.6503, lat: 35.6762 },
+        { id: 'THA', state: 'Thajsko', city: 'Bangkok', lon: 100.5018, lat: 13.7563 },
+        { id: 'IDN', state: 'Indonésie', city: 'Jakarta', lon: 106.8456, lat: -6.2088 },
+
+        // Ostatní státy Asie (nyní včetně hlavních měst)
+        { id: 'AFG', state: 'Afghánistán', city: 'Kábul', lon: 69.1722, lat: 34.5281 },
+        { id: 'ARM', state: 'Arménie', city: 'Jerevan', lon: 44.5152, lat: 40.1872 },
+        { id: 'AZE', state: 'Ázerbájdžán', city: 'Baku', lon: 49.8671, lat: 40.4093 },
+        { id: 'BGD', state: 'Bangladéš', city: 'Dháka', lon: 90.4125, lat: 23.8103 },
+        { id: 'BTN', state: 'Bhútán', city: 'Thimphu', lon: 89.6390, lat: 27.4728 },
+        { id: 'BRN', state: 'Brunej', city: 'Bandar Seri Begawan', lon: 114.9398, lat: 4.9031 },
+        { id: 'KHM', state: 'Kambodža', city: 'Phnompenh', lon: 104.9282, lat: 11.5564 },
+        { id: 'CYP', state: 'Kypr', city: 'Nikósie', lon: 33.3606, lat: 35.1856 },
+        { id: 'GEO', state: 'Gruzie', city: 'Tbilisi', lon: 44.8271, lat: 41.7151 },
+        { id: 'IRQ', state: 'Irák', city: 'Bagdád', lon: 44.3615, lat: 33.3152 },
+        { id: 'ISR', state: 'Izrael', city: 'Jeruzalém', lon: 35.2137, lat: 31.7683 },
+        { id: 'JOR', state: 'Jordánsko', city: 'Ammán', lon: 35.9284, lat: 31.9454 },
+        { id: 'KAZ', state: 'Kazachstán', city: 'Astana', lon: 71.4304, lat: 51.1282 },
+        { id: 'PRK', state: 'Severní Korea', city: 'Pchjongjang', lon: 125.7625, lat: 39.0392 },
+        { id: 'KWT', state: 'Kuvajt', city: 'Kuvajt', lon: 47.9788, lat: 29.3759 },
+        { id: 'KGZ', state: 'Kyrgyzstán', city: 'Biškek', lon: 74.5900, lat: 42.8746 },
+        { id: 'LAO', state: 'Laos', city: 'Vientiane', lon: 102.6000, lat: 17.9800 },
+        { id: 'LBN', state: 'Libanon', city: 'Bejrút', lon: 35.5018, lat: 33.8938 },
+        { id: 'MYS', state: 'Malajsie', city: 'Kuala Lumpur', lon: 101.6869, lat: 3.1390 },
+        { id: 'MNG', state: 'Mongolsko', city: 'Ulánbátar', lon: 106.9170, lat: 47.9150 },
+        { id: 'MMR', state: 'Myanmar', city: 'Neipyijto', lon: 96.0891, lat: 19.7450 },
+        { id: 'NPL', state: 'Nepál', city: 'Káthmándú', lon: 85.3240, lat: 27.7172 },
+        { id: 'OMN', state: 'Omán', city: 'Maskat', lon: 58.4059, lat: 23.5859 },
+        { id: 'PAK', state: 'Pákistán', city: 'Islámábád', lon: 73.0479, lat: 33.6844 },
+        { id: 'PHL', state: 'Filipíny', city: 'Manila', lon: 120.9842, lat: 14.5995 },
+        { id: 'QAT', state: 'Katar', city: 'Dauhá', lon: 51.5310, lat: 25.2854 },
+        { id: 'LKA', state: 'Srí Lanka', city: 'Kolombo', lon: 79.8612, lat: 6.9271 },
+        { id: 'SYR', state: 'Sýrie', city: 'Damašek', lon: 36.2913, lat: 33.5138 },
+        { id: 'TWN', state: 'Tchaj-wan', city: 'Tchaj-pej', lon: 121.5654, lat: 25.0330 },
+        { id: 'TJK', state: 'Tádžikistán', city: 'Dušanbe', lon: 68.7870, lat: 38.5598 },
+        { id: 'TLS', state: 'Východní Timor', city: 'Dili', lon: 125.5736, lat: -8.5586 },
+        { id: 'TUR', state: 'Turecko', city: 'Ankara', lon: 32.8597, lat: 39.9334 },
+        { id: 'TKM', state: 'Turkmenistán', city: 'Ašchabad', lon: 58.3261, lat: 37.9601 },
+        { id: 'ARE', state: 'SAE (Spojené arabské emiráty)', city: 'Abú Dhabí', lon: 54.3667, lat: 24.4667 },
+        { id: 'UZB', state: 'Uzbekistán', city: 'Taškent', lon: 69.2401, lat: 41.2995 },
+        { id: 'VNM', state: 'Vietnam', city: 'Hanoj', lon: 105.8342, lat: 21.0278 },
+        { id: 'YEM', state: 'Jemen', city: 'Saná', lon: 44.2066, lat: 15.3694 }
+    ];
+
+    // Stavové proměnné
+    let score = { correct: 0, incorrect: 0 };
+    let selectedItem = null;
+    let placedItems = new Set();
+    let globalProjection = null;
+
+    // Dynamický výpočet celkového počtu položek (Stát + Město pro každý záznam)
+    const totalItemsToPlace = regionsData.reduce((acc, curr) => acc + (curr.city ? 2 : 1), 0);
+
+    const itemsListDiv = document.getElementById('items-list');
+    const instructionBanner = document.getElementById('instruction-banner');
+
+    // 1. Inicializace D3 mapy a dat
+    async function initGame() {
+        try {
+            // Stažení mapy
+            let response;
+            try {
+                response = await fetch('./world.geojson');
+                if (!response.ok) throw new Error();
+            } catch (e) {
+                console.log('Lokální mapa nenalezena, stahuji z cloudu...');
+                response = await fetch('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson');
+            }
+
+            if (!response.ok) throw new Error('Data se nepodařilo načíst');
+            const geoData = await response.json();
+
+            drawMap(geoData);
+            setupSidePanel();
+            setupSearch();
+
+            instructionBanner.innerHTML = 'Vyber položku vpravo a klikni na mapu!';
+            instructionBanner.classList.replace('bg-slate-800', 'bg-blue-600');
+        } catch (error) {
+            instructionBanner.innerHTML = 'Chyba připojení k mapovým datům. Obnovte stránku.';
+            instructionBanner.classList.replace('bg-slate-800', 'bg-red-600');
+            console.error(error);
+        }
+    }
+
+    function drawMap(geoData) {
+        const svg = d3.select("#asia-map");
+        svg.selectAll("*").remove();
+
+        const mapContainer = document.getElementById('map-wrapper');
+        const width = mapContainer.clientWidth;
+        const height = mapContainer.clientHeight;
+
+        // Projekce pro Asii - Mercator funguje hezky napříč těmito šířkami
+        globalProjection = d3.geoMercator()
+            .center([88, 22]) // Střed přizpůsobený Asii
+            .scale(Math.min(width, height) * 0.7) // Dynamické přizpůsobení velikosti obrazovky
+            .translate([width / 2, height / 2]);
+
+        const pathGen = d3.geoPath().projection(globalProjection);
+
+        // Hlavní skupina, kterou budeme posouvat a zoomovat
+        const mapZoomGroup = svg.append("g").attr("id", "map-zoom-group");
+
+        const statesGroup = mapZoomGroup.append("g").attr("id", "map-states");
+        const citiesGroup = mapZoomGroup.append("g").attr("id", "map-cities");
+        const labelsGroup = mapZoomGroup.append("g").attr("id", "map-labels");
+
+        // Přidání chování Zoom & Pan
+        const zoom = d3.zoom()
+            .scaleExtent([0.5, 10]) // Jak moc jde odzoomovat a přiblížit
+            .on("zoom", (event) => {
+                mapZoomGroup.attr("transform", event.transform);
+
+                // Sémantický zoom - uchováváme hezké proporce hranic a koleček i při přiblížení
+                const k = event.transform.k;
+                statesGroup.selectAll("path").style("stroke-width", (0.8 / k) + "px");
+                citiesGroup.selectAll("circle").attr("r", 5 / k).style("stroke-width", (2 / k) + "px");
+                labelsGroup.selectAll("text").style("font-size", function() {
+                    const isState = d3.select(this).attr("data-type") === 'state';
+                    return (isState ? 12 : 11) / k + "px";
+                });
+            });
+
+        svg.call(zoom);
+
+        // Vykreslení států
+        statesGroup.selectAll("path")
+            .data(geoData.features)
+            .enter()
+            .append("path")
+            .attr("d", pathGen)
+            .attr("class", d => regionsData.some(r => r.id === d.id) ? "map-region" : "context-region")
+            .attr("id", (d, i) => `map-state-${d.id || 'ctx-'+i}`)
+            .on("click", function(event, d) {
+                const regionId = d.id || 'unknown';
+                handleMapClick(regionId, 'state', this);
+            });
+
+        // Vykreslení měst POUZE u států, která ho mají definováno
+        citiesGroup.selectAll("circle")
+            .data(regionsData.filter(r => r.city))
+            .enter()
+            .append("circle")
+            .attr("cx", d => globalProjection([d.lon, d.lat])[0])
+            .attr("cy", d => globalProjection([d.lon, d.lat])[1])
+            .attr("r", 5)
+            .attr("class", "map-city")
+            .attr("id", d => `map-city-${d.id}`)
+            .on("click", function(event, d) {
+                event.stopPropagation(); // Zabrání prokliknutí na stát ležící pod městem
+                handleMapClick(d.id, 'city', this);
+            });
+
+        // Reakce na změnu velikosti okna pro úpravu SVG
+        window.addEventListener('resize', () => {
+            const w = mapContainer.clientWidth;
+            const h = mapContainer.clientHeight;
+            svg.attr("viewBox", `0 0 ${w} ${h}`);
+        });
+        svg.attr("viewBox", `0 0 ${width} ${height}`);
+    }
+
+    // Nastavení pravého panelu s tlačítky
+    function setupSidePanel() {
+        let listItems = [];
+        regionsData.forEach(region => {
+            listItems.push({ id: region.id, type: 'state', name: region.state });
+            if(region.city) {
+                listItems.push({ id: region.id, type: 'city', name: region.city });
+            }
+        });
+
+        // Zamíchání položek (Fisher-Yates)
+        for (let i = listItems.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [listItems[i], listItems[j]] = [listItems[j], listItems[i]];
+        }
+
+        listItems.forEach(item => {
+            const btn = document.createElement('button');
+            btn.id = `btn-${item.id}-${item.type}`;
+            // Data-name pro snadné vyhledávání
+            btn.setAttribute('data-name', item.name);
+            btn.className = `list-item-btn w-full text-left p-2 mb-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 transition-all flex items-center justify-between shadow-sm`;
+
+            const icon = item.type === 'state' ? '🗺️' : '📍';
+            const typeLabel = item.type === 'state' ? 'Stát' : 'Město';
+
+            btn.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">${icon}</span>
+                        <span class="font-medium text-slate-800 text-sm">${item.name}</span>
+                    </div>
+                    <span class="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded border border-slate-200">${typeLabel}</span>
+                `;
+
+            btn.onclick = () => selectItem(item);
+            itemsListDiv.appendChild(btn);
+        });
+    }
+
+    // Napojení vyhledávání
+    function setupSearch() {
+        const searchInput = document.getElementById('search-input');
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const buttons = document.querySelectorAll('.list-item-btn');
+
+            buttons.forEach(btn => {
+                const itemName = btn.getAttribute('data-name').toLowerCase();
+                // Zobrazí, pokud odpovídá hledání (a není skryté kvůli tomu, že už je uhodnuto - to by mělo opacity-50)
+                if (itemName.includes(query)) {
+                    btn.style.display = 'flex';
+                } else {
+                    btn.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    // Obsluha výběru položky ze seznamu
+    function selectItem(item) {
+        if (placedItems.has(`${item.id}-${item.type}`)) return;
+
+        if (selectedItem) {
+            const prevBtn = document.getElementById(`btn-${selectedItem.id}-${selectedItem.type}`);
+            if (prevBtn && !placedItems.has(`${selectedItem.id}-${selectedItem.type}`)) {
+                prevBtn.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50', 'scale-[1.02]');
+            }
+        }
+
+        selectedItem = item;
+
+        const newBtn = document.getElementById(`btn-${item.id}-${item.type}`);
+        newBtn.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50', 'scale-[1.02]');
+
+        const targetName = item.type === 'state' ? 'území státu' : 'bod města (kolečko)';
+        instructionBanner.innerHTML = `Vybráno: <strong>${item.name}</strong>. Najdi ${targetName} na mapě!`;
+        instructionBanner.classList.replace('bg-blue-600', 'bg-amber-500');
+    }
+
+    // Obsluha kliknutí do mapy
+    function handleMapClick(clickedId, clickedType, targetElement) {
+        if (!selectedItem) {
+            showToast('Nejprve musíš vybrat položku ze seznamu vpravo!', 'warning');
+            return;
+        }
+
+        const mapElement = targetElement || document.getElementById(`map-${clickedType}-${clickedId}`);
+        if (!mapElement) return;
+
+        if (placedItems.has(`${clickedId}-${clickedType}`)) return;
+
+        // Zajištění, že uživatel nekliká stát, když hledá město a naopak
+        if (selectedItem.type !== clickedType) {
+            const mistakeStr = selectedItem.type === 'state' ? 'území (stát)' : 'bod (město)';
+            showToast(`Chyba! Hledáš ${selectedItem.type === 'state' ? 'stát' : 'město'}, musíš kliknout na ${mistakeStr}.`, 'warning');
+            return;
+        }
+
+        if (selectedItem.id === clickedId) {
+            // SPRÁVNĚ
+            score.correct++;
+            updateScore();
+
+            const itemKey = `${selectedItem.id}-${selectedItem.type}`;
+            placedItems.add(itemKey);
+
+            mapElement.classList.add('correct');
+
+            const btn = document.getElementById(`btn-${selectedItem.id}-${selectedItem.type}`);
+            btn.classList.replace('ring-2', 'border');
+            btn.classList.replace('ring-blue-500', 'border-green-200');
+            btn.classList.replace('bg-blue-50', 'bg-green-50');
+            btn.classList.add('opacity-40', 'order-last'); // Posunout dolu a zprůhlednit
+            btn.classList.remove('scale-[1.02]', 'hover:bg-slate-100');
+            btn.innerHTML = btn.innerHTML.replace('🗺️', '✅').replace('📍', '✅');
+
+            // Vizuální posun hotového tlačítka nakonec seznamu
+            btn.parentNode.appendChild(btn);
+
+            addLabelToMap(selectedItem.id, selectedItem.type, selectedItem.name, mapElement);
+
+            showToast(`Správně! ${selectedItem.name} je na svém místě.`, 'success');
+
+            selectedItem = null;
+            instructionBanner.innerHTML = 'Vyber další položku vpravo a klikni na mapu!';
+            instructionBanner.classList.replace('bg-amber-500', 'bg-blue-600');
+
+            // Vymazání hledání po správném uhodnutí
+            document.getElementById('search-input').value = '';
+            document.getElementById('search-input').dispatchEvent(new Event('input'));
+
+            checkWinCondition();
+
+        } else {
+            // ŠPATNĚ
+            score.incorrect++;
+            updateScore();
+
+            mapElement.classList.remove('error');
+            void mapElement.offsetWidth; // Restart css animace
+            mapElement.classList.add('error');
+
+            showToast(`Špatně! Tohle není ${selectedItem.name}.`, 'error');
+        }
+    }
+
+    // Pomocné funkce
+    function addLabelToMap(id, type, name, targetElement) {
+        const region = regionsData.find(r => r.id === id);
+
+        // D3 výběr pro vložení popisku do správné skupiny s aplikovaným zoomem
+        const labelsGroup = d3.select("#map-labels");
+
+        // Zjištění aktuálního zoomu pro velikost písma
+        const transform = d3.select("#map-zoom-group").attr("transform");
+        let k = 1;
+        if (transform) {
+            const match = transform.match(/scale\(([^)]+)\)/);
+            if (match) k = parseFloat(match[1]);
+        }
+
+        const text = labelsGroup.append("text")
+            .text(name)
+            .attr("text-anchor", "middle")
+            .attr("data-type", type)
+            .attr("class", "map-label pointer-events-none drop-shadow-md")
+            .style("font-size", (type === 'state' ? 12 : 11) / k + "px")
+            .style("font-weight", type === 'state' ? "bold" : "normal")
+            .style("fill", type === 'state' ? "#166534" : "#854d0e");
+
+        let x, y;
+        if (type === 'state') {
+            const feature = d3.select(targetElement).datum();
+            const pathGen = d3.geoPath().projection(globalProjection);
+            const centroid = pathGen.centroid(feature);
+            x = centroid[0];
+            y = centroid[1];
+        } else {
+            [x, y] = globalProjection([region.lon, region.lat]);
+            y += 18 / k; // Offset dolů dynamicky dle zoomu
+        }
+
+        text.attr("x", x).attr("y", y);
+    }
+
+    function updateScore() {
+        document.getElementById('score-correct').innerText = score.correct;
+        document.getElementById('score-incorrect').innerText = score.incorrect;
+    }
+
+    function showToast(message, type) {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+
+        let bgClass = 'bg-slate-800';
+        let icon = 'ℹ️';
+        if(type === 'success') { bgClass = 'bg-green-600'; icon = '✅'; }
+        if(type === 'error') { bgClass = 'bg-red-600'; icon = '❌'; }
+        if(type === 'warning') { bgClass = 'bg-amber-500'; icon = '⚠️'; }
+
+        toast.className = `${bgClass} text-white px-6 py-3 rounded-full shadow-xl text-sm md:text-base font-medium flex items-center gap-2 transform translate-y-10 opacity-0 transition-all duration-300`;
+        toast.innerHTML = `<span>${icon}</span> ${message}`;
+
+        container.appendChild(toast);
+
+        setTimeout(() => toast.classList.remove('translate-y-10', 'opacity-0'), 10);
+
+        setTimeout(() => {
+            toast.classList.add('translate-y-10', 'opacity-0');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    function checkWinCondition() {
+        if (placedItems.size === totalItemsToPlace) {
+            document.getElementById('final-correct').innerText = score.correct;
+            document.getElementById('final-incorrect').innerText = score.incorrect;
+
+            const modal = document.getElementById('victory-modal');
+            const content = document.getElementById('victory-content');
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }, 10);
+
+            instructionBanner.style.display = 'none';
+        }
+    }
+
+    // Spuštění
+    document.addEventListener('DOMContentLoaded', initGame);
+</script>
+</body>
+</html>

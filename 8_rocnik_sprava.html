@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Záchranná Mise | macOS Edice pro 8. ročník</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .mono { font-family: 'Space Mono', monospace; }
+
+        .btn-option {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .btn-option:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+        }
+
+        .btn-option.correct {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
+            color: #34d399;
+        }
+
+        .btn-option.wrong {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: #ef4444;
+            color: #f87171;
+            animation: shake 0.4s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+
+        /* Interaktivní prvky */
+        .source-item {
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .source-item:hover { transform: scale(1.05); }
+        .source-item.selected {
+            box-shadow: 0 0 0 3px #3b82f6;
+            transform: scale(1.1);
+            background: rgba(59, 130, 246, 0.3);
+        }
+        .target-zone {
+            transition: all 0.2s;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            min-height: 120px;
+        }
+        .target-zone:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: #3b82f6;
+        }
+
+        .progress-bar-container {
+            width: 100%; height: 8px; background: rgba(255,255,255,0.1);
+            border-radius: 4px; overflow: hidden; margin-bottom: 30px;
+        }
+        .progress-bar {
+            height: 100%; background: #3b82f6; width: 0%; transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body class="p-4">
+
+<div class="glass-panel w-full max-w-4xl p-8 md:p-12 relative" id="game-container">
+
+    <!-- ÚVODNÍ OBRAZOVKA -->
+    <div id="screen-intro" class="text-center">
+        <div class="text-6xl text-blue-500 mb-6"><i class="fa-brands fa-apple"></i></div>
+        <h1 class="text-4xl md:text-5xl font-bold mb-4">macOS Záchranná Mise</h1>
+        <p class="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
+            Školní Macy byly napadeny virem Chaos! Zmizely znalosti o zkratkách a soubory jsou rozházené. Jsi jediný expert, který to může během 10 minut opravit.
+        </p>
+        <input type="text" id="playerName" placeholder="Zadej své jméno experta" class="w-full max-w-sm px-6 py-4 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 mb-8 outline-none focus:border-blue-500 text-center text-xl">
+        <br>
+        <button onclick="startGame()" class="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xl transition-colors shadow-lg shadow-blue-500/30">
+            Zahájit záchranu systému <i class="fa-solid fa-power-off ml-2"></i>
+        </button>
+    </div>
+
+    <!-- KVÍZOVÁ OBRAZOVKA -->
+    <div id="screen-quiz" class="hidden">
+        <div class="flex justify-between items-center mb-4">
+            <div class="text-sm font-bold text-blue-400 uppercase tracking-widest" id="level-indicator">Level 1/10</div>
+            <div class="text-sm mono text-gray-400">Skóre: <span id="score-display">0</span></div>
+        </div>
+        <div class="progress-bar-container"><div class="progress-bar" id="quiz-progress"></div></div>
+        <h2 id="question-text" class="text-2xl md:text-3xl font-bold mb-8 leading-tight text-center">Otázka se načítá...</h2>
+        <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        <div class="text-center mt-10 hidden" id="next-btn-container">
+            <button onclick="nextLevel()" class="px-8 py-3 bg-green-500 hover:bg-green-400 text-white font-bold rounded-xl transition-colors">
+                Další úroveň <i class="fa-solid fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- INTERAKTIVNÍ OBRAZOVKA -->
+    <div id="screen-interactive" class="hidden">
+        <div class="flex justify-between items-center mb-4">
+            <div class="text-sm font-bold text-blue-400 uppercase tracking-widest" id="int-level-indicator">Level X/10</div>
+            <div class="text-sm mono text-gray-400">Skóre: <span id="score-display-int">0</span></div>
+        </div>
+        <div class="progress-bar-container"><div class="progress-bar" id="int-progress"></div></div>
+
+        <h2 id="int-title" class="text-2xl font-bold mb-2 text-center text-yellow-400"><i class="fa-solid fa-triangle-exclamation mr-2"></i> Interaktivní úkol</h2>
+        <p id="int-desc" class="text-center text-gray-300 mb-8 text-sm">Klikni na položku a přiřaď ji na správné místo.</p>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Položky k roztřídění -->
+            <div class="bg-white/5 p-4 rounded-xl border border-white/10" id="source-container">
+                <h3 class="font-bold mb-4 text-gray-400 text-center uppercase text-sm">K roztřídění</h3>
+                <div class="flex flex-wrap gap-3 justify-center" id="sources-wrapper"></div>
+            </div>
+            <!-- Cílové zóny -->
+            <div class="grid grid-cols-2 gap-4" id="targets-wrapper"></div>
+        </div>
+
+        <div class="text-center mt-8 hidden" id="interactive-next-btn">
+            <p class="text-green-400 font-bold mb-4"><i class="fa-solid fa-circle-check"></i> Systém úspěšně opraven!</p>
+            <button onclick="nextLevel()" class="px-8 py-3 bg-green-500 hover:bg-green-400 text-white font-bold rounded-xl transition-colors">
+                Pokračovat dál <i class="fa-solid fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ZÁVĚREČNÁ OBRAZOVKA -->
+    <div id="screen-end" class="hidden text-center">
+        <div class="text-7xl text-yellow-400 mb-6"><i class="fa-solid fa-trophy"></i></div>
+        <h1 class="text-4xl font-bold mb-2">Mise Dokončena!</h1>
+        <p class="text-xl text-gray-300 mb-8">Experte <span id="final-name" class="font-bold text-white"></span>, tvá práce je u konce. Macy jsou zachráněny!</p>
+        <div class="inline-block bg-white/10 border border-white/20 rounded-2xl p-8 mb-8">
+            <div class="text-gray-400 uppercase tracking-widest text-sm mb-2">Tvé finální skóre</div>
+            <div class="text-6xl font-bold text-blue-400 mono"><span id="final-score"></span>/10</div>
+        </div>
+        <br>
+        <button onclick="location.reload()" class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-colors">
+            <i class="fa-solid fa-rotate-right mr-2"></i> Hrát znovu
+        </button>
+    </div>
+
+</div>
+
+<script>
+    // DATA HRY - 10 úrovní
+    const gameData = [
+        { type: 'quiz', q: 'Který z těchto operačních systémů je "Open Source" (kód je veřejný) a používají ho hlavně programátoři?', options: ['Windows', 'macOS', 'Linux', 'iOS'], correct: 2 },
+        { type: 'quiz', q: 'Kdo je považován za zakladatele služby WWW (World Wide Web)?', options: ['Steve Jobs', 'Tim Berners-Lee', 'Bill Gates', 'Mark Zuckerberg'], correct: 1 },
+        { type: 'quiz', q: 'V jaké aplikaci na počítačích Mac organizujeme složky a soubory (modrý obličej v Docku)?', options: ['Průzkumník', 'Finder', 'Safari', 'Launchpad'], correct: 1 },
+        { type: 'interactive', subtype: 'files' }, // 4. level interaktivní třídění
+        { type: 'quiz', q: 'Jakou klávesovou zkratku použiješ v macOS pro bleskové vyvolání vyhledávání "Spotlight"?', options: ['Cmd ⌘ + F', 'Alt + Mezerník', 'Cmd ⌘ + Mezerník', 'Shift + S'], correct: 2 },
+        { type: 'quiz', q: 'Chceš se rychle podívat na obsah souboru ve Finderu (tzv. Rychlý náhled), aniž bys otevíral aplikaci. Co zmáčkneš?', options: ['Dvakrát kliknu myší', 'Klávesu Mezerník', 'Klávesu Enter', 'Cmd ⌘ + O'], correct: 1 },
+        { type: 'quiz', q: 'Máš otevřeno hodně aplikací a chceš mezi nimi rychle přepínat pomocí klávesnice. Zmáčkneš:', options: ['Cmd ⌘ + Tab', 'Alt + Tab', 'Ctrl + Šipky', 'Cmd ⌘ + Q'], correct: 0 },
+        { type: 'quiz', q: 'Potřebuješ udělat výřez obrazovky (Screenshot části plochy) a poslat to učiteli. Která zkratka to je?', options: ['Cmd ⌘ + C', 'Cmd ⌘ + Shift + 4', 'Cmd ⌘ + S', 'F12'], correct: 1 },
+        { type: 'interactive', subtype: 'shortcuts' }, // 9. level spojování zkratek
+        { type: 'quiz', q: 'Jak v macOS rychle rozdělíš obrazovku na dvě poloviny (Split View) pro dvě aplikace vedle sebe?', options: ['Přetáhnu okno úplně doprava', 'Podržím myš na zeleném tlačítku v levém horním rohu okna', 'Zmáčknu Cmd ⌘ + D', 'Není to možné'], correct: 1 }
+    ];
+
+    // DATA PRO INTERAKTIVNÍ LEVELY
+    const intLevelsData = {
+        'files': {
+            title: 'Roztřiď chaos ve složkách',
+            desc: 'Klikni na soubor a pak klikni na složku, do které logicky patří.',
+            sources: [
+                { id: 'f1', text: 'referat.docx', match: 'doc', icon: 'fa-file-word', color: 'text-blue-400' },
+                { id: 'f2', text: 'fotka_z_vyletu.jpg', match: 'img', icon: 'fa-file-image', color: 'text-purple-400' },
+                { id: 'f3', text: 'pisnicka.mp3', match: 'audio', icon: 'fa-file-audio', color: 'text-yellow-400' },
+                { id: 'f4', text: 'poznamky.txt', match: 'doc', icon: 'fa-file-lines', color: 'text-gray-300' }
+            ],
+            targets: [
+                { id: 'd1', text: 'Dokumenty', accepts: 'doc', icon: 'fa-folder-open' },
+                { id: 'd2', text: 'Obrázky', accepts: 'img', icon: 'fa-folder-open' },
+                { id: 'd3', text: 'Hudba', accepts: 'audio', icon: 'fa-folder-open' },
+                { id: 'd4', text: 'Koš', accepts: 'trash', icon: 'fa-trash-can' }
+            ]
+        },
+        'shortcuts': {
+            title: 'Oprav zničené zkratky',
+            desc: 'Klikni na klávesovou zkratku a pak klikni na její správný význam vpravo.',
+            sources: [
+                { id: 's1', text: 'Cmd ⌘ + C', match: 'copy', icon: 'fa-keyboard', color: 'text-gray-200' },
+                { id: 's2', text: 'Cmd ⌘ + V', match: 'paste', icon: 'fa-keyboard', color: 'text-gray-200' },
+                { id: 's3', text: 'Cmd ⌘ + W', match: 'close', icon: 'fa-keyboard', color: 'text-gray-200' },
+                { id: 's4', text: 'Cmd ⌘ + Z', match: 'undo', icon: 'fa-keyboard', color: 'text-gray-200' }
+            ],
+            targets: [
+                { id: 't1', text: 'Krok zpět (Vrátit)', accepts: 'undo', icon: 'fa-rotate-left' },
+                { id: 't2', text: 'Kopírovat', accepts: 'copy', icon: 'fa-copy' },
+                { id: 't3', text: 'Zavřít okno', accepts: 'close', icon: 'fa-xmark' },
+                { id: 't4', text: 'Vložit', accepts: 'paste', icon: 'fa-paste' }
+            ]
+        }
+    };
+
+    let currentLevel = 0;
+    let score = 0;
+    let playerName = "";
+    let answered = false;
+
+    // Stav interaktivní hry
+    let selectedId = null;
+    let itemsSorted = 0;
+    let totalItemsToSort = 0;
+
+    const elIntro = document.getElementById('screen-intro');
+    const elQuiz = document.getElementById('screen-quiz');
+    const elInt = document.getElementById('screen-interactive');
+    const elEnd = document.getElementById('screen-end');
+
+    // Zvuky
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playTone(f, type, dur) {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type; osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + dur);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + dur);
+    }
+    function playCorrect() { playTone(600, 'sine', 0.1); setTimeout(()=>playTone(800, 'sine', 0.2), 100); }
+    function playWrong() { playTone(300, 'sawtooth', 0.3); }
+    function playSelect() { playTone(400, 'triangle', 0.05); }
+
+    function startGame() {
+        playerName = document.getElementById('playerName').value.trim() || "Expert_8A";
+        elIntro.classList.add('hidden');
+        loadLevel();
+    }
+
+    function loadLevel() {
+        answered = false;
+        document.getElementById('score-display').innerText = score;
+        document.getElementById('score-display-int').innerText = score;
+        const progress = (currentLevel / gameData.length) * 100;
+        document.getElementById('quiz-progress').style.width = `${progress}%`;
+        document.getElementById('int-progress').style.width = `${progress}%`;
+
+        if (currentLevel >= gameData.length) { showEndScreen(); return; }
+
+        const data = gameData[currentLevel];
+
+        if (data.type === 'quiz') {
+            elInt.classList.add('hidden'); elQuiz.classList.remove('hidden');
+            document.getElementById('level-indicator').innerText = `Level ${currentLevel + 1}/${gameData.length}`;
+            document.getElementById('question-text').innerText = data.q;
+
+            const optsCont = document.getElementById('options-container');
+            optsCont.innerHTML = '';
+            document.getElementById('next-btn-container').classList.add('hidden');
+
+            data.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-option p-6 rounded-xl text-lg font-semibold text-left flex items-center justify-between';
+                btn.innerHTML = `<span>${opt}</span> <i class="fa-solid fa-circle-check opacity-0 transition-opacity"></i>`;
+                btn.onclick = () => checkQuiz(idx, btn, data.correct);
+                optsCont.appendChild(btn);
+            });
+        } else {
+            elQuiz.classList.add('hidden'); elInt.classList.remove('hidden');
+            document.getElementById('int-level-indicator').innerText = `Level ${currentLevel + 1}/${gameData.length}`;
+            initInteractive(data.subtype);
+        }
+    }
+
+    function checkQuiz(selIdx, btn, corIdx) {
+        if (answered) return;
+        answered = true;
+        const allBtns = document.querySelectorAll('.btn-option');
+
+        if (selIdx === corIdx) {
+            playCorrect(); btn.classList.add('correct'); btn.querySelector('i').classList.remove('opacity-0');
+            score++; document.getElementById('score-display').innerText = score;
+        } else {
+            playWrong(); btn.classList.add('wrong'); btn.querySelector('i').className = 'fa-solid fa-circle-xmark ml-2';
+            allBtns[corIdx].classList.add('correct');
+        }
+        allBtns.forEach(b => b.style.pointerEvents = 'none');
+        document.getElementById('next-btn-container').classList.remove('hidden');
+    }
+
+    // --- INTERAKTIVNÍ LOGIKA ---
+    function initInteractive(subtype) {
+        selectedId = null; itemsSorted = 0;
+        const data = intLevelsData[subtype];
+        totalItemsToSort = data.sources.length;
+
+        document.getElementById('int-title').innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-2"></i> ${data.title}`;
+        document.getElementById('int-desc').innerText = data.desc;
+        document.getElementById('interactive-next-btn').classList.add('hidden');
+
+        const sWrap = document.getElementById('sources-wrapper');
+        const tWrap = document.getElementById('targets-wrapper');
+        sWrap.innerHTML = ''; tWrap.innerHTML = '';
+
+        data.sources.forEach(s => {
+            const el = document.createElement('div');
+            el.className = `source-item bg-[#1e293b] p-3 rounded-lg border border-white/10 flex flex-col items-center justify-center w-28 h-28 ${s.color}`;
+            el.id = s.id; el.dataset.match = s.match;
+            el.innerHTML = `<i class="fa-solid ${s.icon} text-4xl mb-2"></i><span class="text-xs text-white truncate w-full text-center">${s.text}</span>`;
+            el.onclick = () => selectItem(el);
+            sWrap.appendChild(el);
+        });
+
+        data.targets.forEach(t => {
+            const el = document.createElement('div');
+            el.className = 'target-zone bg-white/5 rounded-xl p-4 flex flex-col items-center justify-start relative overflow-hidden';
+            el.dataset.accepts = t.accepts;
+            el.innerHTML = `<div class="text-yellow-400 mb-2"><i class="fa-solid ${t.icon} text-3xl"></i></div><div class="font-bold text-sm text-gray-300 mb-4 text-center">${t.text}</div><div class="target-content flex flex-wrap gap-2 w-full justify-center"></div>`;
+            el.onclick = () => dropItem(el);
+            tWrap.appendChild(el);
+        });
+    }
+
+    function selectItem(el) {
+        document.querySelectorAll('.source-item').forEach(f => f.classList.remove('selected'));
+        selectedId = el.id; el.classList.add('selected'); playSelect();
+    }
+
+    function dropItem(targetEl) {
+        if (!selectedId) return;
+        const srcEl = document.getElementById(selectedId);
+
+        if (srcEl.dataset.match === targetEl.dataset.accepts) {
+            playCorrect();
+            srcEl.classList.remove('selected', 'w-28', 'h-28');
+            srcEl.classList.add('w-16', 'h-16', 'text-[10px]');
+            srcEl.querySelector('i').classList.replace('text-4xl', 'text-2xl');
+            targetEl.querySelector('.target-content').appendChild(srcEl);
+            selectedId = null; itemsSorted++;
+
+            if (itemsSorted === totalItemsToSort) {
+                score++; document.getElementById('score-display-int').innerText = score;
+                document.getElementById('interactive-next-btn').classList.remove('hidden');
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            }
+        } else {
+            playWrong(); srcEl.classList.remove('selected'); srcEl.classList.add('wrong');
+            setTimeout(() => srcEl.classList.remove('wrong'), 400); selectedId = null;
+        }
+    }
+
+    function nextLevel() { currentLevel++; loadLevel(); }
+
+    function showEndScreen() {
+        elQuiz.classList.add('hidden'); elInt.classList.add('hidden'); elEnd.classList.remove('hidden');
+        document.getElementById('final-name').innerText = playerName;
+        document.getElementById('final-score').innerText = score;
+
+        if (score === 10) {
+            const end = Date.now() + 3000;
+            (function frame() {
+                confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#3b82f6', '#fbbf24'] });
+                confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#3b82f6', '#fbbf24'] });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+        } else if (score >= 6) {
+            confetti({ particleCount: 200, spread: 120, origin: { y: 0.6 } });
+        }
+    }
+</script>
+</body>
+</html>

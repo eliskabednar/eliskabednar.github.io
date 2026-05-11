@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informatika - Svět souborů (Varianta B)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Knihovna pro generování PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .correct { border-color: #22c55e !important; background-color: #f0fdf4 !important; color: #166534 !important; }
+        .incorrect { border-color: #ef4444 !important; background-color: #fef2f2 !important; color: #991b1b !important; }
+        .drop-zone { min-height: 120px; transition: all 0.3s ease; }
+        .file-item { transition: all 0.2s; cursor: pointer; touch-action: none; }
+        .file-item:active { transform: scale(0.95); opacity: 0.8; }
+        .nav-btn.active { background-color: #7c3aed; color: white; shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-12">
+
+<!-- Přihlašovací obrazovka -->
+<div id="login-screen" class="fixed inset-0 bg-purple-600 z-[60] flex items-center justify-center p-4 text-center">
+    <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full animate-in zoom-in duration-300">
+        <h1 class="text-3xl font-black mb-2 text-slate-900 font-sans">Informatika 🚀</h1>
+        <p class="text-slate-500 mb-6 text-sm font-medium">Vítej u testu varianty B. <br>Zadej své jméno pro protokol.</p>
+        <input type="text" id="student-name" placeholder="Jméno a příjmení" class="w-full p-4 border-2 border-slate-100 rounded-2xl mb-6 outline-none focus:border-purple-500 font-bold text-center text-slate-800 text-lg">
+        <button onclick="startApp()" class="w-full bg-purple-600 text-white p-4 rounded-2xl font-black hover:bg-purple-700 transition transform active:scale-95 shadow-lg shadow-purple-200">
+            SPUSTIT TEST
+        </button>
+    </div>
+</div>
+
+<div id="app-container" class="hidden">
+    <!-- Header -->
+    <header class="bg-purple-600 text-white p-6 shadow-xl sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-extrabold flex items-center gap-3 tracking-tight">
+                    <span class="text-3xl">🗄️</span> Datový expert
+                </h1>
+                <p id="header-student-name" class="opacity-90 font-medium text-sm italic">Student: </p>
+            </div>
+            <div id="progress-badge" class="bg-purple-700/50 backdrop-blur-md border border-purple-400/30 px-6 py-2 rounded-full font-mono font-bold text-sm">
+                Splněno: 0 / 4
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="max-w-5xl mx-auto p-4 flex flex-wrap gap-2 justify-center my-4">
+        <button onclick="showTab('intro')" id="btn-intro" class="nav-btn bg-purple-600 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-md">Úvod</button>
+        <button onclick="showTab('types')" id="btn-types" class="nav-btn bg-white text-slate-600 px-5 py-2.5 rounded-xl hover:bg-purple-50 font-bold transition-all border border-slate-200">Přípony</button>
+        <button onclick="showTab('tree')" id="btn-tree" class="nav-btn bg-white text-slate-600 px-5 py-2.5 rounded-xl hover:bg-purple-50 font-bold transition-all border border-slate-200">Struktura</button>
+        <button onclick="showTab('actions')" id="btn-actions" class="nav-btn bg-white text-slate-600 px-5 py-2.5 rounded-xl hover:bg-purple-50 font-bold transition-all border border-slate-200">Organizace</button>
+        <button onclick="showTab('quiz')" id="btn-quiz" class="nav-btn bg-white text-slate-600 px-5 py-2.5 rounded-xl hover:bg-purple-50 font-bold transition-all border border-slate-200">Test</button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-5xl mx-auto px-4">
+        <!-- ÚVOD -->
+        <section id="intro" class="tab-content active space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 overflow-hidden relative">
+                <div class="absolute -right-20 -top-20 w-64 h-64 bg-purple-50 rounded-full opacity-50"></div>
+                <div class="relative z-10 flex flex-col md:flex-row gap-10 items-center">
+                    <div class="flex-1">
+                        <h2 class="text-4xl font-black mb-6 text-slate-900 leading-tight">Vítej ve <span class="text-purple-600">variantě B</span>, <br>mistře souborů!</h2>
+                        <p class="text-xl text-slate-600 mb-8 leading-relaxed">
+                            Druhá verze tvého digitálního výcviku začíná právě teď. Čekají tě jiné soubory, nová stromová struktura a náročnější kvíz.
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                            <div class="bg-purple-50 p-4 rounded-2xl flex items-center gap-3">
+                                <span class="text-2xl">📦</span>
+                                <span class="font-bold text-purple-800 text-sm">Archivy a komprese</span>
+                            </div>
+                            <div class="bg-indigo-50 p-4 rounded-2xl flex items-center gap-3">
+                                <span class="text-2xl">🌐</span>
+                                <span class="font-bold text-indigo-800 text-sm">Webové formáty</span>
+                            </div>
+                        </div>
+                        <button onclick="showTab('types')" class="bg-purple-600 hover:bg-purple-700 text-white px-10 py-4 rounded-2xl font-black text-lg transition-all transform hover:scale-105 active:scale-95 shadow-lg shadow-purple-200">
+                            ZAČÍT TEST ➔
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODUL 1: TYPY A PŘÍPONY B -->
+        <section id="types" class="tab-content">
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
+                <div class="flex items-center gap-4 mb-6">
+                    <span class="bg-purple-100 text-purple-600 p-3 rounded-2xl font-bold">ÚKOL 1</span>
+                    <h2 class="text-2xl font-extrabold text-slate-900">Nový seznam přípon</h2>
+                </div>
+                <p class="text-slate-500 mb-8 max-w-2xl text-sm italic">Přiřaď správnou koncovku k popisu souboru.</p>
+                <div class="space-y-4" id="types-list"></div>
+                <div id="types-success" class="mt-8 hidden bg-green-50 border-2 border-green-200 p-6 rounded-2xl flex items-center gap-4 animate-in zoom-in">
+                    <div class="text-3xl">✨</div>
+                    <div class="text-green-800 font-bold">Přípony zvládnuty!</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODUL 2: STROMOVÁ STRUKTURA B -->
+        <section id="tree" class="tab-content">
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
+                <div class="flex items-center gap-4 mb-6">
+                    <span class="bg-orange-100 text-orange-600 p-3 rounded-2xl font-bold">ÚKOL 2</span>
+                    <h2 class="text-2xl font-extrabold text-slate-900">Adresářová analýza</h2>
+                </div>
+                <div class="grid lg:grid-cols-2 gap-10">
+                    <div class="bg-slate-900 text-slate-300 p-8 rounded-3xl font-mono text-xs shadow-inner relative leading-relaxed">
+                        <div class="flex items-center gap-2 mb-4 text-white font-bold border-b border-slate-800 pb-2">📂 Projekty_Grafika</div>
+                        <div class="ml-6 border-l border-slate-700 pl-6 space-y-4">
+                            <div>
+                                <div class="flex items-center gap-2 mb-2 text-cyan-400 font-bold">📂 Rok_2023</div>
+                                <div class="ml-6 border-l border-slate-700/50 pl-6 space-y-2 opacity-80">
+                                    <div>📄 Stary_navrh.pdf <span class="text-[9px] opacity-50">(01.01.2023)</span></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 mb-2 text-cyan-400 font-bold">📂 Rok_2024</div>
+                                <div class="ml-6 border-l border-slate-700/50 pl-6 space-y-2 opacity-80">
+                                    <div class="text-pink-400 font-bold">🎬 Film_Dovolena.mp4 (2,2 GB)</div>
+                                    <div class="text-pink-400 font-bold">🎬 Sestrih_Akce.mp4 (3,1 GB)</div>
+                                    <div>🖼️ Logo_final.png <span class="text-[9px] opacity-70">(05.05.2024)</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                            <h4 class="font-black text-slate-900 mb-3 text-sm italic">📅 Kdy byl vytvořen nejstarší soubor v tomto stromu?</h4>
+                            <div class="space-y-2" id="tree-q1-container">
+                                <button onclick="checkTreeQ(1, 'old', this)" class="tree-btn w-full text-left p-4 bg-white border-2 border-slate-100 rounded-xl hover:bg-purple-50 transition text-xs font-bold">1. ledna 2023</button>
+                                <button onclick="checkTreeQ(1, 'new', this)" class="tree-btn w-full text-left p-4 bg-white border-2 border-slate-100 rounded-xl hover:bg-purple-50 transition text-xs font-bold">5. května 2024</button>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                            <h4 class="font-black text-slate-900 mb-3 text-sm italic">💾 Máme flashku o velikosti 4 GB. Vejdou se na ni obě videa (.mp4) najednou?</h4>
+                            <div class="flex gap-4" id="tree-q2-container">
+                                <button onclick="checkTreeQ(2, 'yes', this)" class="tree-btn flex-1 bg-white border-2 border-slate-100 p-3 rounded-xl font-black hover:border-blue-500 transition text-sm">ANO</button>
+                                <button onclick="checkTreeQ(2, 'no', this)" class="tree-btn flex-1 bg-white border-2 border-slate-100 p-3 rounded-xl font-black hover:border-red-500 transition text-sm">NE</button>
+                            </div>
+                            <p id="tree-math-msg" class="mt-4 text-xs font-bold hidden"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODUL 3: ÚKLID B -->
+        <section id="actions" class="tab-content">
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
+                <div class="flex items-center gap-4 mb-6">
+                    <span class="bg-indigo-100 text-indigo-600 p-3 rounded-2xl font-bold">ÚKOL 3</span>
+                    <h2 class="text-2xl font-extrabold text-slate-900">Správa plochy</h2>
+                </div>
+                <p class="text-sm text-slate-500 mb-8 italic">Roztřiď soubory správně: <b>nebezpeci.exe</b> smaž, zbytek dej do <b>Dokumentů</b>.</p>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div id="zone-source" ondrop="drop(event, 'source')" ondragover="allowDrop(event)" class="drop-zone bg-slate-50 p-5 rounded-3xl border-2 border-dashed border-slate-200 flex flex-col gap-3">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Plocha</span>
+                        <div id="f1" draggable="true" ondragstart="drag(event)" onclick="handleItemClick('f1')" class="file-item bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+                            <div class="flex items-center gap-2 font-bold text-xs pointer-events-none"><span>📊</span> Projekt.pptx</div>
+                        </div>
+                        <div id="f2" draggable="true" ondragstart="drag(event)" onclick="handleItemClick('f2')" class="file-item bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+                            <div class="flex items-center gap-2 font-bold text-xs pointer-events-none"><span>⚠️</span> nebezpeci.exe</div>
+                        </div>
+                        <div id="f3" draggable="true" ondragstart="drag(event)" onclick="handleItemClick('f3')" class="file-item bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+                            <div class="flex items-center gap-2 font-bold text-xs pointer-events-none"><span>🖼️</span> obrazek.png</div>
+                        </div>
+                    </div>
+                    <div id="zone-target" ondrop="drop(event, 'target')" ondragover="allowDrop(event)" class="drop-zone bg-indigo-50 p-5 rounded-3xl border-2 border-indigo-200 flex flex-col gap-3">
+                        <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest text-center">Dokumenty</span>
+                    </div>
+                    <div id="zone-trash" ondrop="drop(event, 'trash')" ondragover="allowDrop(event)" class="drop-zone bg-red-50 p-5 rounded-3xl border-2 border-red-200 flex flex-col gap-3">
+                        <span class="text-[10px] font-black text-red-400 uppercase tracking-widest text-center">Odpadkový koš</span>
+                    </div>
+                </div>
+                <div id="action-success-msg" class="mt-8 hidden bg-green-50 border-2 border-green-200 p-4 rounded-2xl text-center text-green-800 font-bold animate-in zoom-in">✅ Organizace dokončena!</div>
+            </div>
+        </section>
+
+        <!-- MODUL 4: TEST B -->
+        <section id="quiz" class="tab-content">
+            <div id="quiz-container" class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 min-h-[400px] flex flex-col"></div>
+        </section>
+    </main>
+</div>
+
+<script>
+    let studentName = "";
+    let tasksCompleted = new Set();
+    let currentQuizIdx = 0;
+
+    let firstAttemptResults = { types: 0, tree: 0, actions: 0, quiz: 0 };
+    let typesScored = new Set();
+    let treeScored = { q1: false, q2: false };
+    let actionsFirstMoves = { f1: null, f2: null, f3: null };
+
+    function startApp() {
+        const nameInput = document.getElementById('student-name');
+        if (nameInput.value.trim().length < 3) {
+            alert("Zadej prosím své celé jméno.");
+            return;
+        }
+        studentName = nameInput.value.trim();
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('app-container').classList.remove('hidden');
+        document.getElementById('header-student-name').innerText = "Student: " + studentName;
+        initTypes();
+    }
+
+    const typesConfig = [
+        { ext: '.zip', desc: 'Zkomprimovaný archiv souborů', correct: '.zip' },
+        { ext: '.pptx', desc: 'Prezentace (např. PowerPoint)', correct: '.pptx' },
+        { ext: '.html', desc: 'Zdrojový kód webové stránky', correct: '.html' },
+        { ext: '.wav', desc: 'Nekomprimovaný zvuk (vysoká kvalita)', correct: '.wav' },
+        { ext: '.png', desc: 'Obrázek s podporou průhlednosti', correct: '.png' }
+    ];
+
+    const quizQuestions = [
+        { q: "Co vyjadřuje 'cesta k souboru' (např. C:/Dokumenty/referat.txt)?", a: ["Kdo soubor vytvořil", "Kde se soubor v počítači nachází", "Jak je soubor velký"], c: "Kde se soubor v počítači nachází" },
+        { q: "Pokud soubor 'zazipujeme' (komprimujeme), co se obvykle stane?", a: ["Změní se na video", "Zmenší se jeho velikost na disku", "Soubor se smaže"], c: "Zmenší se jeho velikost na disku" },
+        { q: "Která jednotka je největší?", a: ["1 TB (Terabyte)", "1 GB (Gigabyte)", "1 MB (Megabyte)"], c: "1 TB (Terabyte)" },
+        { q: "Co znamená, že je soubor 'Skrytý'?", a: ["Není vidět v běžném prohlížeči souborů", "Má heslo", "Je určen jen pro tisk"], c: "Není vidět v běžném prohlížeči souborů" }
+    ];
+
+    function showTab(id) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.remove('bg-purple-600', 'text-white', 'shadow-lg');
+            btn.classList.add('bg-white', 'text-slate-600');
+        });
+        const btnElem = document.getElementById('btn-' + id);
+        if(btnElem) {
+            btnElem.classList.remove('bg-white', 'text-slate-600');
+            btnElem.classList.add('bg-purple-600', 'text-white', 'shadow-lg');
+        }
+        if(id === 'quiz') renderQuiz();
+    }
+
+    function initTypes() {
+        const list = document.getElementById('types-list');
+        list.innerHTML = typesConfig.map((item, i) => `
+            <div class="flex flex-col md:flex-row md:items-center gap-4 p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl transition-all">
+                <span class="flex-1 font-bold text-slate-700 text-sm">${item.desc}</span>
+                <select onchange="verifyType(this, '${item.correct}', ${i})" class="p-3 bg-white border border-slate-200 rounded-xl outline-none text-xs font-bold">
+                    <option value="">Zvol příponu...</option>
+                    ${typesConfig.map(c => `<option value="${c.ext}">${c.ext}</option>`).sort().join('')}
+                </select>
+            </div>
+        `).join('');
+    }
+
+    function verifyType(el, correct, idx) {
+        const isCorrect = el.value === correct;
+        if (!typesScored.has(idx)) {
+            if (isCorrect) firstAttemptResults.types++;
+            typesScored.add(idx);
+        }
+        if (isCorrect) {
+            el.parentElement.classList.add('correct');
+            el.parentElement.classList.remove('incorrect');
+        } else {
+            el.parentElement.classList.add('incorrect');
+            el.parentElement.classList.remove('correct');
+        }
+        if (typesScored.size === typesConfig.length) markTaskDone('types');
+    }
+
+    function checkTreeQ(q, val, btn) {
+        const isCorrect = (q === 1 && val === 'old') || (q === 2 && val === 'no');
+
+        if (q === 1 && !treeScored.q1) {
+            if (isCorrect) firstAttemptResults.tree++;
+            treeScored.q1 = true;
+        } else if (q === 2 && !treeScored.q2) {
+            if (isCorrect) firstAttemptResults.tree++;
+            treeScored.q2 = true;
+        }
+
+        if (q === 2) {
+            const msg = document.getElementById('tree-math-msg');
+            msg.classList.remove('hidden');
+            msg.innerText = isCorrect ? "✅ Správně, 2.2 + 3.1 = 5.3 GB (více než 4 GB)!" : "❌ Ne, součet velikostí (5.3 GB) je větší než kapacita flashky.";
+            msg.className = "mt-4 text-xs font-bold " + (isCorrect ? "text-green-600" : "text-red-500");
+        }
+
+        const btns = btn.parentNode.querySelectorAll('button');
+        btns.forEach(b => b.classList.remove('correct', 'incorrect'));
+        btn.classList.add(isCorrect ? 'correct' : 'incorrect');
+
+        if (treeScored.q1 && treeScored.q2) markTaskDone('tree');
+    }
+
+    function allowDrop(ev) { ev.preventDefault(); }
+    function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); }
+
+    function drop(ev, zone) {
+        ev.preventDefault();
+        const data = ev.dataTransfer.getData("text");
+        const item = document.getElementById(data);
+        if (item) {
+            processMove(data, zone);
+            document.getElementById('zone-' + zone).appendChild(item);
+        }
+        checkActionsStatus();
+    }
+
+    function handleItemClick(id) {
+        const item = document.getElementById(id);
+        const source = document.getElementById('zone-source');
+        let newZone = "";
+        if (source.contains(item)) {
+            newZone = (id === 'f2') ? 'trash' : 'target';
+            document.getElementById('zone-' + newZone).appendChild(item);
+        } else {
+            newZone = 'source';
+            source.appendChild(item);
+        }
+        processMove(id, newZone);
+        checkActionsStatus();
+    }
+
+    function processMove(fileId, zoneId) {
+        if (actionsFirstMoves[fileId] === null) actionsFirstMoves[fileId] = zoneId;
+    }
+
+    function checkActionsStatus() {
+        const ok = document.getElementById('zone-target').contains(document.getElementById('f1')) &&
+            document.getElementById('zone-trash').contains(document.getElementById('f2')) &&
+            document.getElementById('zone-target').contains(document.getElementById('f3'));
+
+        if (ok) {
+            document.getElementById('action-success-msg').classList.remove('hidden');
+            let actionPoints = 0;
+            if (actionsFirstMoves.f1 === 'target') actionPoints++;
+            if (actionsFirstMoves.f2 === 'trash') actionPoints++;
+            if (actionsFirstMoves.f3 === 'target') actionPoints++;
+            firstAttemptResults.actions = actionPoints;
+            markTaskDone('actions');
+        } else {
+            document.getElementById('action-success-msg').classList.add('hidden');
+        }
+    }
+
+    function renderQuiz() {
+        const container = document.getElementById('quiz-container');
+        if(currentQuizIdx >= quizQuestions.length) {
+            const totalScore = firstAttemptResults.types + firstAttemptResults.tree + firstAttemptResults.actions + firstAttemptResults.quiz;
+            const maxPoints = 5 + 2 + 3 + 4;
+            container.innerHTML = `
+                <div class="flex-1 flex flex-col items-center justify-center text-center animate-in zoom-in py-10">
+                    <div class="text-7xl mb-6">🎯</div>
+                    <h2 class="text-4xl font-black mb-2 uppercase text-slate-900">TEST HOTOV!</h2>
+                    <p class="text-slate-600 font-bold text-xl">${studentName}</p>
+                    <div class="text-7xl font-black text-purple-600 my-6">${totalScore} / ${maxPoints}</div>
+                    <button onclick="generatePDF()" class="bg-purple-600 text-white px-10 py-5 rounded-2xl font-black hover:bg-purple-700 transition shadow-xl transform hover:scale-105 active:scale-95">
+                        STÁHNOUT PROTOKOL (PDF)
+                    </button>
+                </div>
+            `;
+            markTaskDone('quiz');
+            return;
+        }
+
+        const q = quizQuestions[currentQuizIdx];
+        container.innerHTML = `
+            <div class="flex justify-between items-center mb-10">
+                <span class="text-xs font-black text-purple-500 uppercase tracking-widest">Test B: ${currentQuizIdx+1}/4</span>
+                <div class="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="bg-purple-500 h-full transition-all duration-500" style="width: ${((currentQuizIdx+1)/4)*100}%"></div>
+                </div>
+            </div>
+            <h3 class="text-2xl font-bold mb-8 text-slate-800">${q.q}</h3>
+            <div class="grid gap-4">
+                ${q.a.map(opt => `<button onclick="handleQuizAnswer('${opt}')" class="p-6 border-2 border-slate-100 rounded-2xl hover:border-purple-500 font-bold transition-all text-sm bg-white text-slate-700 shadow-sm">${opt}</button>`).join('')}
+            </div>
+        `;
+    }
+
+    function handleQuizAnswer(ans) {
+        if (ans === quizQuestions[currentQuizIdx].c) firstAttemptResults.quiz++;
+        currentQuizIdx++;
+        renderQuiz();
+    }
+
+    function cleanCzech(text) {
+        return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            .replace(/č/g, "c").replace(/Č/g, "C")
+            .replace(/ď/g, "d").replace(/Ď/g, "D")
+            .replace(/ě/g, "e").replace(/Ě/g, "E")
+            .replace(/ň/g, "n").replace(/Ň/g, "N")
+            .replace(/ř/g, "r").replace(/Ř/g, "R")
+            .replace(/š/g, "s").replace(/Š/g, "S")
+            .replace(/ť/g, "t").replace(/Ť/g, "T")
+            .replace(/ů/g, "u").replace(/Ů/g, "U")
+            .replace(/ž/g, "z").replace(/Ž/g, "Z");
+    }
+
+    function generatePDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const total = firstAttemptResults.types + firstAttemptResults.tree + firstAttemptResults.actions + firstAttemptResults.quiz;
+        const maxPoints = 5 + 2 + 3 + 4;
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(22);
+        doc.text(cleanCzech("PROTOKOL - VARIANTA B"), 20, 25);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(14);
+        doc.text(cleanCzech(`Student: ${studentName}`), 20, 40);
+        doc.text(cleanCzech(`Datum: ${new Date().toLocaleDateString('cs-CZ')}`), 20, 48);
+
+        doc.line(20, 55, 190, 55);
+        doc.setFontSize(12);
+        doc.text(cleanCzech("VYSLEDKY ULOCH (PRVNI POKUSY):"), 20, 70);
+        doc.text(cleanCzech(`1. Pripony (B): ${firstAttemptResults.types} / 5 bodu`), 30, 80);
+        doc.text(cleanCzech(`2. Stromova struktura (B): ${firstAttemptResults.tree} / 2 body`), 30, 90);
+        doc.text(cleanCzech(`3. Organizace souboru (B): ${firstAttemptResults.actions} / 3 body`), 30, 100);
+        doc.text(cleanCzech(`4. Zaverecny test (B): ${firstAttemptResults.quiz} / 4 body`), 30, 110);
+
+        doc.line(20, 120, 190, 120);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(18);
+        doc.text(cleanCzech(`CELKEM: ${total} / ${maxPoints} BODU`), 20, 135);
+
+        doc.save(`vysledky_B_${studentName.replace(/\s+/g, '_')}.pdf`);
+    }
+
+    function markTaskDone(id) {
+        tasksCompleted.add(id);
+        document.getElementById('progress-badge').innerText = `Splněno: ${tasksCompleted.size} / 4`;
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ICT 9.A: Počítačové sítě</title>
+    <!-- Tailwind CSS pro moderní vzhled -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Knihovna pro generování PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        /* Zvýraznění vybraného obrázku */
+        .image-option.selected {
+            border-color: #2563eb; /* blue-600 */
+            background-color: #eff6ff; /* blue-50 */
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased min-h-screen">
+
+<!-- Hlavní kontejner aplikace -->
+<div id="app" class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+
+    <!-- ÚVODNÍ OBRAZOVKA -->
+    <div id="welcome-screen" class="bg-white rounded-2xl shadow-xl overflow-hidden transition-all duration-500">
+        <div class="bg-blue-600 p-8 text-white text-center">
+            <h1 class="text-3xl font-bold mb-2">ICT 9.A: Počítačové sítě</h1>
+            <p class="text-blue-100">Od ARPANETu po chytré domácnosti</p>
+        </div>
+        <div class="p-8">
+            <div class="mb-8 text-lg text-slate-600">
+                <p class="mb-4">Tento test obsahuje otázky z probírané látky. Čekají vás klasické otázky, výběr ze schémat i spojování pojmů. Časová dotace je <strong>30 minut</strong>.</p>
+                <p>Po dokončení se automaticky vygeneruje perfektní PDF soubor s vašimi výsledky pro odevzdání.</p>
+            </div>
+
+            <div class="mb-6">
+                <label for="student-name" class="block text-sm font-medium text-slate-700 mb-2">Zadejte své jméno a příjmení:</label>
+                <input type="text" id="student-name" placeholder="Např. Jan Novák" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-lg">
+            </div>
+
+            <button onclick="startTest()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg shadow-md transition-transform transform hover:-translate-y-1 text-lg">
+                Spustit test
+            </button>
+        </div>
+    </div>
+
+    <!-- OBRAZOVKA TESTU -->
+    <div id="quiz-screen" class="hidden">
+        <div class="bg-white rounded-2xl shadow-lg p-6 mb-6 sticky top-4 z-10 border-b-4 border-blue-600 flex justify-between items-center">
+            <h2 class="text-xl font-bold text-slate-800">Test z ICT</h2>
+            <div class="text-sm font-semibold bg-blue-100 text-blue-800 py-1 px-3 rounded-full">
+                Žák: <span id="display-name"></span>
+            </div>
+        </div>
+
+        <div id="questions-container" class="space-y-6 mb-8">
+            <!-- Otázky se sem načtou dynamicky -->
+        </div>
+
+        <button onclick="submitTest()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-transform transform hover:-translate-y-1 text-xl flex justify-center items-center gap-2 mb-12">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            Odevzdat test a vygenerovat PDF
+        </button>
+    </div>
+
+    <!-- OBRAZOVKA VÝSLEDKŮ (Viditelná pro uživatele na webu) -->
+    <div id="results-screen" class="hidden bg-white rounded-2xl shadow-xl overflow-hidden mb-12">
+        <div class="p-8 sm:p-12 text-center">
+            <h1 class="text-3xl font-bold mb-4 text-slate-800">Test byl úspěšně dokončen!</h1>
+            <p class="text-lg text-slate-600 mb-8">Vaše odpovědi byly zpracovány. Níže vidíte svůj výsledek.</p>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-8 mb-8 inline-block w-full max-w-md mx-auto">
+                <h2 class="text-xl text-slate-600 mb-2">Vaše skóre</h2>
+                <p class="text-5xl font-extrabold" id="web-score-text"></p>
+                <p class="text-lg font-medium mt-2 text-slate-500" id="web-score-percentage"></p>
+            </div>
+        </div>
+
+        <div class="bg-slate-100 p-6 flex flex-col sm:flex-row justify-center gap-4">
+            <button onclick="downloadPDF()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow transition-colors flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Stáhnout PDF s rozborem chyb znovu
+            </button>
+            <button onclick="location.reload()" class="bg-slate-300 hover:bg-slate-400 text-slate-800 font-bold py-3 px-6 rounded-lg shadow transition-colors">
+                Začít nový test
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<!-- SPECIÁLNÍ SKRYTÝ KONTEJNER POUZE PRO PDF GENERÁTOR -->
+<!-- Záměrně nepoužíváme složité Tailwind flexboxy, aby se PDF nerozpadlo -->
+<div style="display:none;">
+    <div id="pdf-export-container" style="padding: 30px; font-family: sans-serif; color: #000; background: #fff; width: 800px;">
+        <!-- Obsah PDF se vygeneruje v JS do absolutně jednoduchého HTML -->
+    </div>
+</div>
+
+<!-- MODÁLNÍ OKNO PRO CHYBY -->
+<div id="error-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm px-4">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+        <div class="flex items-center gap-4 mb-4 text-red-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <h3 id="modal-title" class="text-2xl font-bold">Chyba</h3>
+        </div>
+        <p id="modal-message" class="text-slate-600 mb-6 text-lg"></p>
+        <button onclick="closeModal()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-4 rounded-lg">
+            Rozumím
+        </button>
+    </div>
+</div>
+
+<!-- PŘEKRYTÍ PŘI NAČÍTÁNÍ -->
+<div id="loading-overlay" class="hidden fixed inset-0 z-50 flex flex-col items-center justify-center bg-white bg-opacity-90 backdrop-blur-sm">
+    <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 mb-4"></div>
+    <h2 class="text-2xl font-bold text-slate-800">Generuji PDF...</h2>
+    <p class="text-slate-500 mt-2">Prosím, čekejte. Soubor se brzy stáhne.</p>
+</div>
+
+<script>
+    // Definice SVG ikon pro síťové topologie
+    const svgStar = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-20 h-20 mx-auto text-slate-700"><circle cx="50" cy="50" r="10" fill="currentColor"/><path d="M 50 50 L 20 20 M 50 50 L 80 20 M 50 50 L 20 80 M 50 50 L 80 80" stroke="currentColor" stroke-width="4"/><circle cx="20" cy="20" r="8" fill="currentColor"/><circle cx="80" cy="20" r="8" fill="currentColor"/><circle cx="20" cy="80" r="8" fill="currentColor"/><circle cx="80" cy="80" r="8" fill="currentColor"/></svg>`;
+    const svgBus = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-20 h-20 mx-auto text-slate-700"><path d="M 10 50 L 90 50 M 25 50 L 25 30 M 50 50 L 50 70 M 75 50 L 75 30" stroke="currentColor" stroke-width="4"/><circle cx="25" cy="30" r="8" fill="currentColor"/><circle cx="50" cy="70" r="8" fill="currentColor"/><circle cx="75" cy="30" r="8" fill="currentColor"/></svg>`;
+    const svgRing = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-20 h-20 mx-auto text-slate-700"><path d="M 30 30 L 70 30 L 70 70 L 30 70 Z" stroke="currentColor" stroke-width="4" fill="none"/><circle cx="30" cy="30" r="8" fill="currentColor"/><circle cx="70" cy="30" r="8" fill="currentColor"/><circle cx="70" cy="70" r="8" fill="currentColor"/><circle cx="30" cy="70" r="8" fill="currentColor"/></svg>`;
+    const svgMesh = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-20 h-20 mx-auto text-slate-700"><path d="M 50 15 L 85 40 L 70 85 L 30 85 L 15 40 Z M 50 15 L 70 85 M 50 15 L 30 85 M 85 40 L 30 85 M 85 40 L 15 40 M 70 85 L 15 40" stroke="currentColor" stroke-width="2"/><circle cx="50" cy="15" r="7" fill="currentColor"/><circle cx="85" cy="40" r="7" fill="currentColor"/><circle cx="70" cy="85" r="7" fill="currentColor"/><circle cx="30" cy="85" r="7" fill="currentColor"/><circle cx="15" cy="40" r="7" fill="currentColor"/></svg>`;
+
+    // Nová struktura testu s různými typy otázek
+    const questions = [
+        {
+            type: 'radio',
+            text: "Co je hlavní funkcí počítačové sítě podle základního principu?",
+            options: [
+                "Zvýšení výkonu grafické karty v počítači.",
+                "Sdílení dat, souborů a hardwaru (např. tiskáren) s možností okamžité komunikace.",
+                "Zajišťuje bezdrátové nabíjení mobilních telefonů."
+            ],
+            correct: 1
+        },
+        {
+            type: 'match',
+            text: "Přiřaďte správný název sítě (dle rozlohy) k jejímu popisu:",
+            items: ["PAN", "LAN", "WAN"],
+            options: ["Celosvětová síť (např. Internet)", "Osobní síť na jednotky metrů (např. připojení hodinek přes Bluetooth)", "Místní síť v jedné budově (např. domácnost či učebna)"],
+            correct: [1, 2, 0] // Indexy správných odpovědí z pole options
+        },
+        {
+            type: 'radio',
+            text: "Co propojuje síť typu MAN (Metropolitan Area Network)?",
+            options: [
+                "Pouze osobní zařízení v okruhu 5 metrů.",
+                "Sítě v rámci jednoho města (např. pobočky firmy, univerzitní kampus).",
+                "Propojuje kontinenty a celý svět."
+            ],
+            correct: 1
+        },
+        {
+            type: 'radio',
+            text: "Hlavní nevýhodou bezdrátové sítě Wi-Fi (WLAN) oproti kabelové (LAN) je:",
+            options: [
+                "Nemožnost připojit mobilní telefony a tablety.",
+                "Příliš vysoká pořizovací cena samotných kabelů.",
+                "Nižší stabilita, rušení překážkami (stěnami) a nutnost zabezpečení (šifrování)."
+            ],
+            correct: 2
+        },
+        {
+            type: 'image-select',
+            text: "Vyberte ze schémat obrázek, který znázorňuje topologii Sběrnice (Bus):",
+            options: [
+                { label: "Hvězda", svg: svgStar },
+                { label: "Mesh", svg: svgMesh },
+                { label: "Sběrnice", svg: svgBus },
+                { label: "Kruh", svg: svgRing }
+            ],
+            correct: 2
+        },
+        {
+            type: 'image-select',
+            text: "Které schéma znázorňuje nejčastěji používanou topologii - Hvězdu (Star), kde vše vede do centrálního Switche?",
+            options: [
+                { label: "Kruh", svg: svgRing },
+                { label: "Hvězda", svg: svgStar },
+                { label: "Sběrnice", svg: svgBus },
+                { label: "Mesh", svg: svgMesh }
+            ],
+            correct: 1
+        },
+        {
+            type: 'image-select',
+            text: "Která z těchto topologií znázorňuje typ Mesh (síť), která je nejdražší, ale díky propojení 'každý s každým' nejspolehlivější?",
+            options: [
+                { label: "Sběrnice", svg: svgBus },
+                { label: "Kruh", svg: svgRing },
+                { label: "Hvězda", svg: svgStar },
+                { label: "Mesh", svg: svgMesh }
+            ],
+            correct: 3
+        },
+        {
+            type: 'radio',
+            text: "Technologie optických vláken se vyznačuje tím, že:",
+            options: [
+                "Pro přenos dat využívá pomalé mikrovlnné rádiové signály.",
+                "Má dosah maximálně do dvou metrů od počítače.",
+                "Data se šíří jako světelné impulsy uvnitř skla, což nabízí obrovskou rychlost."
+            ],
+            correct: 0
+        },
+        {
+            type: 'match',
+            text: "Propojte zařízení z chytré domácnosti (IoT) s jejich primárním účelem:",
+            items: ["Chytrá žárovka", "Robotický vysavač", "Chytrý zámek u dveří"],
+            options: ["Bezpečnost a kontrola přístupu domů", "Osvětlení reagující na pohyb nebo aplikaci", "Úklid a údržba domácnosti"],
+            correct: [1, 2, 0]
+        },
+        {
+            type: 'radio',
+            text: "Předchůdcem dnešního internetu byl vojenský projekt ARPANET. Proč byl navržen jako decentralizovaný?",
+            options: [
+                "Aby mohl být snadno vypnut jedním centrálním tlačítkem.",
+                "Aby síť přežila výpadek části uzlů (např. v případě jaderného útoku).",
+                "Aby k němu nikdo neměl přístup."
+            ],
+            correct: 1
+        },
+        {
+            type: 'radio',
+            text: "Jaký je hlavní rozdíl mezi pojmy Internet a Web (WWW)?",
+            options: [
+                "Není mezi nimi rozdíl, obojí vymyslel Tim Berners-Lee.",
+                "Web je výhradně pro telefony, Internet pro počítače.",
+                "Internet je samotná infrastruktura (kabely, spojení), zatímco Web (WWW) jsou prohlížené stránky s odkazy."
+            ],
+            correct: 2
+        },
+        {
+            type: 'radio',
+            text: "Který fyzický konektor se v současnosti nejčastěji zapojuje na konce kabelů v síti LAN (Ethernet)?",
+            options: [
+                "Konektor USB-C",
+                "Konektor RJ-45",
+                "Konektor HDMI"
+            ],
+            correct: 1
+        },
+        {
+            type: 'radio',
+            text: "Co je to v počítačové síti Switch?",
+            options: [
+                "Centrální prvek (krabička) v síti typu hvězda, do kterého se sbíhají všechny kabely.",
+                "Prvek určený výhradně k převodu optického signálu na signál bezdrátový (Wi-Fi).",
+                "Zastaralý síťový prvek, který vezme příchozí data a slepě je rozešle všem připojeným počítačům najednou."
+            ],
+            correct: 0
+        },
+        {
+            type: 'radio',
+            text: "Jakým vzorcem správně zjišťujeme rychlost připojení do sítě?",
+            options: [
+                "Rychlost = Čas / Objem dat",
+                "Rychlost = Objem dat (v bitech) / Čas (v sekundách)",
+                "Rychlost = Vzdálenost / Počet počítačů"
+            ],
+            correct: 1
+        },
+        {
+            type: 'radio',
+            text: "Mobilní připojení se neustále zrychluje. Sítě 5G jsou v porovnání s technologií 4G rychlejší přibližně:",
+            options: [
+                "Dvakrát (2x)",
+                "Desetkrát (10x)",
+                "Stokrát (100x)"
+            ],
+            correct: 2
+        },
+        {
+            type: 'match',
+            text: "Přiřaďte historické milníky internetu k příslušným rokům:",
+            items: ["1969", "1983", "1989"],
+            options: ["Vznik WWW (World Wide Web)", "První zpráva v síti ARPANET", "Zavedení TCP/IP (jazyk internetu)"],
+            correct: [1, 2, 0]
+        },
+        {
+            type: 'radio',
+            text: "Kdo je považován za „otce Webu“ a vynalezl v CERNu World Wide Web (WWW)?",
+            options: [
+                "Bill Gates",
+                "Tim Berners-Lee",
+                "Steve Jobs"
+            ],
+            correct: 1
+        },
+        {
+            type: 'radio',
+            text: "Zkratka IoT (Internet věcí) označuje technologii, která:",
+            options: [
+                "Slouží výhradně k těžbě kryptoměn.",
+                "Zajišťuje fungování klasických stolních počítačů.",
+                "Propojuje miliony běžných zařízení (např. senzory v polích, auta, pračky) do sítě."
+            ],
+            correct: 2
+        },
+        {
+            type: 'radio',
+            text: "Když byl spuštěn ARPANET (předchůdce internetu), co přesně jeho první uzly propojovaly?",
+            options: [
+                "Všechny domácnosti v jednom velkém městě.",
+                "4 americké univerzity.",
+                "Evropu a Ameriku pomocí prvního podmořského kabelu."
+            ],
+            correct: 1
+        },
+        {
+            type: 'radio',
+            text: "Co v síťové komunikaci znamená pojem TCP/IP?",
+            options: [
+                "Základní 'jazyk' (protokol), kterým spolu počítače v internetu komunikují.",
+                "Označení pro nejrychlejší optický kabel.",
+                "Název americké armádní sítě předcházející internetu."
+            ],
+            correct: 0
+        }
+    ];
+
+    let studentName = "";
+    let userAnswers = new Array(questions.length).fill(null);
+
+    function startTest() {
+        const nameInput = document.getElementById('student-name').value.trim();
+        if (nameInput.length < 2) {
+            showModal("Chybí jméno", "Prosím, vyplňte své jméno a příjmení.");
+            return;
+        }
+
+        studentName = nameInput;
+        document.getElementById('display-name').textContent = studentName;
+        document.getElementById('welcome-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.remove('hidden');
+
+        // Inicializace pole odpovědí (objekty pro 'match')
+        questions.forEach((q, i) => {
+            if (q.type === 'match') {
+                userAnswers[i] = new Array(q.items.length).fill(null);
+            }
+        });
+
+        renderQuestions();
+        window.scrollTo(0, 0);
+    }
+
+    // Vykreslení testu s podporou různých formátů
+    function renderQuestions() {
+        const container = document.getElementById('questions-container');
+        container.innerHTML = '';
+
+        questions.forEach((q, index) => {
+            const qDiv = document.createElement('div');
+            qDiv.className = 'bg-white rounded-xl shadow-md p-6 border border-slate-100';
+
+            const qTitle = document.createElement('h3');
+            qTitle.className = 'text-lg font-bold text-slate-800 mb-4';
+            qTitle.textContent = `${index + 1}. ${q.text}`;
+            qDiv.appendChild(qTitle);
+
+            // --- TYP: RADIO (Klasické ABCD) ---
+            if (q.type === 'radio') {
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'space-y-3';
+                q.options.forEach((opt, optIndex) => {
+                    const label = document.createElement('label');
+                    label.className = 'flex items-start p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-blue-50 transition-colors';
+                    const input = document.createElement('input');
+                    input.type = 'radio';
+                    input.name = `question_${index}`;
+                    input.value = optIndex;
+                    input.className = 'mt-1 w-5 h-5 text-blue-600';
+                    input.onchange = () => { userAnswers[index] = optIndex; };
+                    const span = document.createElement('span');
+                    span.className = 'ml-3 text-slate-700 leading-tight';
+                    span.textContent = opt;
+                    label.appendChild(input); label.appendChild(span); optionsDiv.appendChild(label);
+                });
+                qDiv.appendChild(optionsDiv);
+            }
+
+            // --- TYP: IMAGE-SELECT (Výběr z obrázků) ---
+            else if (q.type === 'image-select') {
+                const gridDiv = document.createElement('div');
+                gridDiv.className = 'grid grid-cols-2 md:grid-cols-4 gap-4';
+                q.options.forEach((opt, optIndex) => {
+                    const imgBox = document.createElement('div');
+                    imgBox.className = 'image-option border-2 border-slate-200 rounded-xl p-4 cursor-pointer hover:bg-slate-50 transition-all text-center';
+                    imgBox.id = `q${index}_opt${optIndex}`;
+                    imgBox.innerHTML = opt.svg;
+                    imgBox.onclick = () => {
+                        // Zrušení výběru ostatních
+                        q.options.forEach((_, i) => document.getElementById(`q${index}_opt${i}`).classList.remove('selected'));
+                        // Označení tohoto
+                        imgBox.classList.add('selected');
+                        userAnswers[index] = optIndex;
+                    };
+                    gridDiv.appendChild(imgBox);
+                });
+                qDiv.appendChild(gridDiv);
+            }
+
+            // --- TYP: MATCH (Spojování pojmů) ---
+            else if (q.type === 'match') {
+                const matchDiv = document.createElement('div');
+                matchDiv.className = 'space-y-4 bg-slate-50 p-4 rounded-lg border border-slate-200';
+                q.items.forEach((item, itemIndex) => {
+                    const row = document.createElement('div');
+                    row.className = 'flex flex-col sm:flex-row sm:items-center justify-between gap-2';
+
+                    const label = document.createElement('span');
+                    label.className = 'font-bold text-slate-700 sm:w-1/3';
+                    label.textContent = item;
+
+                    const select = document.createElement('select');
+                    select.className = 'w-full sm:w-2/3 p-2 border border-slate-300 rounded-md focus:ring-blue-500 bg-white';
+                    select.innerHTML = `<option value="" disabled selected>-- Vyberte správný popis --</option>`;
+                    q.options.forEach((optText, optIndex) => {
+                        select.innerHTML += `<option value="${optIndex}">${optText}</option>`;
+                    });
+
+                    select.onchange = (e) => {
+                        userAnswers[index][itemIndex] = parseInt(e.target.value);
+                    };
+
+                    row.appendChild(label); row.appendChild(select); matchDiv.appendChild(row);
+                });
+                qDiv.appendChild(matchDiv);
+            }
+
+            container.appendChild(qDiv);
+        });
+    }
+
+    // Vyhodnocení testu
+    function submitTest() {
+        // Validace vyplnění
+        let isComplete = true;
+        for (let i = 0; i < questions.length; i++) {
+            if (questions[i].type === 'match') {
+                if (userAnswers[i].includes(null)) isComplete = false;
+            } else {
+                if (userAnswers[i] === null) isComplete = false;
+            }
+        }
+
+        if (!isComplete) {
+            showModal("Nevyplněný test", "Prosím, odpovězte na všechny otázky (včetně všech částí u spojování).");
+            return;
+        }
+
+        // Výpočet skóre (za match se dává 1 bod pouze pokud je VŠECHNO správně)
+        let score = 0;
+        questions.forEach((q, i) => {
+            if (q.type === 'match') {
+                const correctStr = JSON.stringify(q.correct);
+                const userStr = JSON.stringify(userAnswers[i]);
+                if (correctStr === userStr) score++;
+            } else {
+                if (userAnswers[i] === q.correct) score++;
+            }
+        });
+
+        // Přepnutí obrazovek
+        const percentage = Math.round((score / questions.length) * 100);
+
+        document.getElementById('web-score-text').textContent = `${score} / ${questions.length}`;
+        document.getElementById('web-score-percentage').textContent = `Úspěšnost: ${percentage} %`;
+
+        // Obarvení skóre na obrazovce
+        const scoreTextElem = document.getElementById('web-score-text');
+        if (percentage >= 80) scoreTextElem.className = "text-5xl font-extrabold text-green-600";
+        else if (percentage >= 50) scoreTextElem.className = "text-5xl font-extrabold text-yellow-500";
+        else scoreTextElem.className = "text-5xl font-extrabold text-red-600";
+
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('results-screen').classList.remove('hidden');
+        window.scrollTo(0, 0);
+
+        // Generování skrytého čistého kódu pro PDF a spuštění stahování
+        prepareCleanPDF(score, percentage);
+        setTimeout(() => downloadPDF(), 500);
+    }
+
+    // --- ZCELA NOVÁ FUNKCE PRO BEZCHYBNÉ PDF ---
+    // Vytváříme čistý, naprosto základní HTML kód bez Tailwindu, aby se PDF formátování nerozbilo
+    function prepareCleanPDF(score, percentage) {
+        const today = new Date().toLocaleDateString('cs-CZ');
+        const pdfContainer = document.getElementById('pdf-export-container');
+
+        let html = `
+                <h1 style="text-align: center; font-size: 28px; border-bottom: 2px solid #ccc; padding-bottom: 10px; margin-bottom: 20px;">Výsledky testu: Počítačové sítě</h1>
+                <div style="margin-bottom: 30px; font-size: 16px;">
+                    <strong>Jméno žáka:</strong> ${studentName}<br>
+                    <strong>Datum:</strong> ${today}<br>
+                    <strong>Skóre:</strong> ${score} bodů z ${questions.length} (${percentage} %)
+                </div>
+                <hr style="margin-bottom: 20px;">
+            `;
+
+        questions.forEach((q, index) => {
+            let isCorrect = false;
+            let userAnswerText = "";
+            let correctAnswerText = "";
+
+            if (q.type === 'match') {
+                isCorrect = JSON.stringify(q.correct) === JSON.stringify(userAnswers[index]);
+
+                userAnswerText = "<ul>";
+                correctAnswerText = "<ul>";
+                q.items.forEach((item, i) => {
+                    const uAns = q.options[userAnswers[index][i]];
+                    const cAns = q.options[q.correct[i]];
+                    userAnswerText += `<li><strong>${item}:</strong> ${uAns}</li>`;
+                    correctAnswerText += `<li><strong>${item}:</strong> ${cAns}</li>`;
+                });
+                userAnswerText += "</ul>";
+                correctAnswerText += "</ul>";
+
+            } else if (q.type === 'image-select') {
+                isCorrect = userAnswers[index] === q.correct;
+                userAnswerText = q.options[userAnswers[index]].label;
+                correctAnswerText = q.options[q.correct].label;
+            } else {
+                // Radio
+                isCorrect = userAnswers[index] === q.correct;
+                userAnswerText = q.options[userAnswers[index]];
+                correctAnswerText = q.options[q.correct];
+            }
+
+            // Explicitní pravidlo pro nezalomení bloku na 2 stránky (page-break-inside: avoid)
+            html += `
+                <div style="margin-bottom: 20px; padding: 15px; border: 1px solid ${isCorrect ? '#4ade80' : '#f87171'}; background-color: ${isCorrect ? '#f0fdf4' : '#fef2f2'}; border-radius: 8px; page-break-inside: avoid;">
+                    <p style="margin-top: 0; font-weight: bold; font-size: 16px;">${index + 1}. ${q.text}</p>
+                    <p style="margin: 5px 0; color: ${isCorrect ? '#15803d' : '#b91c1c'};">
+                        <strong>Vaše odpověď:</strong><br> ${userAnswerText}
+                    </p>
+                `;
+
+            if (!isCorrect) {
+                html += `
+                    <p style="margin: 10px 0 0 0; color: #15803d;">
+                        <strong>Správná odpověď:</strong><br> ${correctAnswerText}
+                    </p>
+                    `;
+            }
+
+            html += `</div>`;
+        });
+
+        pdfContainer.innerHTML = html;
+    }
+
+    // Fyzické uložení PDF s využitím izolovaného HTML prvku
+    function downloadPDF() {
+        const element = document.getElementById('pdf-export-container');
+        const overlay = document.getElementById('loading-overlay');
+
+        // Dočasně zviditelnit kontejner jen pro načtení html2canvas (ale schovaný mimo obrazovku)
+        element.parentElement.style.display = 'block';
+        element.parentElement.style.position = 'absolute';
+        element.parentElement.style.left = '-9999px';
+
+        overlay.classList.remove('hidden');
+
+        const safeName = studentName.replace(/[^a-zA-Z0-9ěščřžýáíéůú]/g, '_');
+        const opt = {
+            margin:       15,
+            filename:     `Test_ICT_${safeName}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true }, // Odebrán windowWidth - způsoboval ořez
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save().then(() => {
+            overlay.classList.add('hidden');
+            element.parentElement.style.display = 'none'; // Opět skrýt
+        }).catch(err => {
+            console.error("Chyba PDF:", err);
+            overlay.classList.add('hidden');
+            showModal("Chyba PDF", "Při generování došlo k chybě. Pokud problém trvá, vyvolejte Tisk obrazovky (Ctrl+P) a uložte jako PDF.");
+        });
+    }
+
+    function showModal(title, message) {
+        document.getElementById('modal-title').textContent = title;
+        document.getElementById('modal-message').textContent = message;
+        document.getElementById('error-modal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+        document.getElementById('error-modal').classList.add('hidden');
+    }
+</script>
+</body>
+</html>

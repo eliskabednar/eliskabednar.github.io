@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Krizový plán: Kyberšikana</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            .no-print { display: none; }
+            body { background-color: white; }
+            .manual-page { border: none; shadow: none; margin: 0; padding: 0; }
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 md:p-10">
+
+<div class="max-w-4xl mx-auto bg-white shadow-2xl border-t-8 border-red-600 manual-page overflow-hidden">
+
+    <!-- Header -->
+    <div class="p-8 bg-slate-50 border-b border-gray-200">
+        <div class="flex justify-between items-start">
+            <div>
+                <h1 class="text-3xl font-black text-slate-900 uppercase tracking-tight">Krizový plán pro sborovnu</h1>
+                <p class="text-red-600 font-bold text-xl mt-1">Téma: Co dělat, když mi žák nahlásí kyberšikanu</p>
+            </div>
+            <div class="no-print">
+                <button onclick="window.print()" class="bg-slate-800 text-white px-4 py-2 rounded hover:bg-slate-700 transition flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                    Vytisknout manuál
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="p-8 grid md:grid-cols-1 gap-8">
+
+        <!-- Krok 1 -->
+        <div class="flex gap-4">
+            <div class="flex-shrink-0 w-10 h-10 bg-red-600 text-white rounded-full flex items-center justify-center font-bold text-xl">1</div>
+            <div>
+                <h3 class="text-xl font-bold text-slate-800">První kontakt: Bezpečí a přijetí</h3>
+                <p class="text-gray-600 mt-1 italic">Cíl: Stabilizovat žáka a získat základní důvěru.</p>
+                <ul class="list-disc ml-5 mt-2 text-gray-700 space-y-1">
+                    <li>Vyslechněte žáka v soukromí (kabinet, prázdná třída).</li>
+                    <li><strong>Neslibujte úplnou mlčenlivost:</strong> Musíte říct: „Děkuji, že mi věříš. Udělám vše pro tvoji ochranu, ale musím o tom informovat vedení, abychom to zastavili.“</li>
+                    <li>Oceňte odvahu žáka situaci nahlásit.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Krok 2 -->
+        <div class="flex gap-4">
+            <div class="flex-shrink-0 w-10 h-10 bg-red-600 text-white rounded-full flex items-center justify-center font-bold text-xl">2</div>
+            <div>
+                <h3 class="text-xl font-bold text-slate-800">Technické zajištění důkazů</h3>
+                <p class="text-gray-600 mt-1 italic">Cíl: Zabránit smazání stop agresorem.</p>
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-2">
+                    <p class="text-sm font-bold text-yellow-800 uppercase">Důležité:</p>
+                    <p class="text-sm text-yellow-900">Nemažte zprávy! Neodpovídejte agresorovi!</p>
+                </div>
+                <ul class="list-disc ml-5 mt-2 text-gray-700 space-y-1">
+                    <li>Pořiďte <strong>snímky obrazovky</strong> (PrintScreen) zpráv, komentářů, profilů.</li>
+                    <li>Zapište si přesné časy a URL adresy (pokud je to možné).</li>
+                    <li>Uložte hlasové zprávy nebo videa.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Krok 3 -->
+        <div class="flex gap-4">
+            <div class="flex-shrink-0 w-10 h-10 bg-red-600 text-white rounded-full flex items-center justify-center font-bold text-xl">3</div>
+            <div>
+                <h3 class="text-xl font-bold text-slate-800">Interní nahlášení</h3>
+                <p class="text-gray-600 mt-1 italic">Cíl: Aktivace školního poradenského pracoviště.</p>
+                <ul class="list-disc ml-5 mt-2 text-gray-700 space-y-1">
+                    <li>Okamžitě informujte <strong>metodika prevence</strong> a <strong>výchovného poradce</strong>.</li>
+                    <li>Oznamte incident <strong>vedení školy</strong>.</li>
+                    <li>Společně určete, zda jde o kyberšikanu (opakovanost, nepoměr sil) nebo jednorázový konflikt.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Krok 4 -->
+        <div class="flex gap-4">
+            <div class="flex-shrink-0 w-10 h-10 bg-red-600 text-white rounded-full flex items-center justify-center font-bold text-xl">4</div>
+            <div>
+                <h3 class="text-xl font-bold text-slate-800">Komunikace s rodinou</h3>
+                <p class="text-gray-600 mt-1 italic">Cíl: Informování zákonných zástupců oběti i agresora.</p>
+                <ul class="list-disc ml-5 mt-2 text-gray-700 space-y-1">
+                    <li>Pozvěte rodiče oběti k osobní schůzce. Předložte zajištěné důkazy.</li>
+                    <li>Informujte je o krocích školy (výchovná opatření, práce se třídou).</li>
+                    <li>Při schůzce s rodiči agresora zachovejte věcnost a profesionalitu.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Krok 5 -->
+        <div class="flex gap-4">
+            <div class="flex-shrink-0 w-10 h-10 bg-red-600 text-white rounded-full flex items-center justify-center font-bold text-xl">5</div>
+            <div>
+                <h3 class="text-xl font-bold text-slate-800">Externí eskalace (je-li nutná)</h3>
+                <p class="text-gray-600 mt-1 italic">Cíl: Ochrana dětí v případě podezření na trestný čin.</p>
+                <ul class="list-disc ml-5 mt-2 text-gray-700 space-y-1">
+                    <li><strong>Policie ČR / OSPOD:</strong> Kontaktujeme v případě výhrůžek násilím, dětské pornografie, vydírání nebo kyberstalkingu.</li>
+                    <li>Oznamovací povinnost školy nastává u závažných trestných činů.</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Kontakty a zdroje -->
+    <div class="p-8 bg-slate-900 text-white">
+        <div class="grid md:grid-cols-2 gap-8">
+            <div>
+                <h4 class="font-bold border-b border-slate-700 mb-4 pb-2">Důležité kontakty (Doplňte):</h4>
+                <p class="text-sm text-slate-400">Školní metodik prevence: ____________________</p>
+                <p class="text-sm text-slate-400 mt-2">Výchovný poradce: ____________________</p>
+                <p class="text-sm text-slate-400 mt-2 font-bold text-indigo-400">Linka bezpečí (pro žáky): 116 111</p>
+            </div>
+            <div>
+                <h4 class="font-bold border-b border-slate-700 mb-4 pb-2">Odborná pomoc online:</h4>
+                <ul class="text-sm text-slate-400 space-y-1">
+                    <li>• E-Bezpečí (www.e-bezpeci.cz)</li>
+                    <li>• Seznam se bezpečně</li>
+                    <li>• Stop online šikaně (poradna)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="max-w-4xl mx-auto mt-8 text-center text-gray-500 text-sm no-print">
+    <p>Poznámka: Tento dokument slouží jako metodická pomůcka a nenahrazuje vnitřní řád školy.</p>
+</div>
+
+</body>
+</html>
